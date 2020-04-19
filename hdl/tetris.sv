@@ -45,7 +45,7 @@ module tetris(input              CLOCK_50,
                                  DRAM_WE_N,    //SDRAM Write Enable
                                  DRAM_CS_N,    //SDRAM Chip Select
                                  DRAM_CLK      //SDRAM Clock
-                    );
+);
     
     logic Reset_h, Clk;
     logic [7:0] keycode;
@@ -58,9 +58,13 @@ module tetris(input              CLOCK_50,
     logic [1:0] hpi_addr;
     logic [15:0] hpi_data_in, hpi_data_out;
     logic hpi_r, hpi_w, hpi_cs, hpi_reset;
-    logic is_ball;
     logic play_area;
     logic [9:0] DrawX, DrawY;
+    logic [4:0] x_coord, y_coord;
+    logic [4:0] x_block = 5'd3;
+    logic [4:0] y_block = 5'd0;
+
+    block_color current_pixel;
     
     // Interface between NIOS II and EZ-OTG chip
     hpi_io_intf hpi_io_inst(
@@ -119,7 +123,9 @@ module tetris(input              CLOCK_50,
     proto ball_instance(.frame_clk(VGA_VS), .Reset(Reset_h), .*);
 
     //color_mapper color_instance(.*);
-    block_color_mapper color_instance(.block_type(EMPTY), .*);
+    block_color_mapper color_instance(.block_type(current_pixel), .*);
+
+    board game_board(.Reset(Reset_h), .*);
     
     // Display keycode on hex display
     HexDriver hex_inst_0 (keycode[3:0], HEX0);

@@ -11,3 +11,5 @@ incremental_db
 db
 .qsys_edit
 simulation
+*.d
+*.o

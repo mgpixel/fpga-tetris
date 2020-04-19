@@ -2,7 +2,6 @@ import types::*;
 
 module block_color_mapper
 (
-  input is_ball,
   input play_area,
   input block_color block_type,
   input [9:0] DrawX, DrawY,
@@ -67,16 +66,9 @@ begin
   end
   // Default colors when not in play area
   else begin
-    if (is_ball) begin
-      red = 8'hff;
-      green = 8'h00;
-      blue = 8'h00;
-    end
-    else begin
-      red = 8'h1f;
-      green = 8'h00;
-      blue = 8'h7f - {1'b0, DrawX[9:3]};
-    end
+    red = 8'h1f;
+    green = 8'h00;
+    blue = 8'h7f - {1'b0, DrawX[9:3]};
   end
 end
 

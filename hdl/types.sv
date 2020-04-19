@@ -1,6 +1,6 @@
 package types;
 
-typedef enum logic [3:0] {
+typedef enum logic [2:0] {
   EMPTY,
   CYAN,
   BLUE,
@@ -11,7 +11,7 @@ typedef enum logic [3:0] {
   MAGENTA
 } block_color;
 
-typedef enum logic [3:0] {
+typedef enum logic [2:0] {
   I_CYAN,
   J_BLUE,
   L_ORANGE,
@@ -20,5 +20,18 @@ typedef enum logic [3:0] {
   T_MAGENTA,
   Z_RED
 } block_t;
+
+typedef enum logic [1:0] {
+  LEFT,
+  RIGHT,
+  DOWN
+} direction;
+
+typedef enum logic [1:0] {
+  ROT_LEFT1,
+  ROT_RIGHT1,
+  ROT2,
+  NORMAL
+} orientation;
 
 endpackage
