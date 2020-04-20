@@ -86,25 +86,35 @@ begin
     move_y[14:10] = move_y[19:15] >= 5'd19 ? move_y[19:15] : move_y[14:10] + 5'd1;
     move_y[9:5] = move_y[19:15] >= 5'd19 ? move_y[19:15] : move_y[9:5] + 5'd1;
     move_y[4:0] = move_y[19:15] >= 5'd19 ? move_y[19:15] : move_y[4:0] + 5'd1;
-    // if (1'b0) begin
-    //   unique case (keycode)
-    //     A: begin
-
-    //     end
-    //     S: begin
-
-    //     end
-    //     D: begin
-
-    //     end
-    //     default: ;
-    //   endcase
-    // end
   end
   if (frame_clk_rising_edge) begin
     counter_in = counter_in + 5'd1;
     if (counter_in >= 5'd16)
       counter_in = 5'd1;
+    // if (1'b0) begin
+    //   unique case (keycode)
+    //     A: begin
+    //       move_x[19:15] = move_x[19:15] >= 5'd1 ? move_x[19:15] : move_x[19:15] - 5'd1;
+    //       move_x[14:10] = move_x[19:15] >= 5'd1 ? move_x[19:15] : move_x[14:10] - 5'd1;
+    //       move_x[9:5] = move_x[19:15] >= 5'd1 ? move_x[19:15] : move_x[9:5] - 5'd1;
+    //       move_x[4:0] = move_x[19:15] >= 5'd1 ? move_x[19:15] : move_x[4:0] - 5'd1;
+    //     end
+    //     D: begin
+    //       move_x[19:15] = move_x[19:15] <= 5'd9 ? move_x[19:15] : move_x[19:15] + 5'd1;
+    //       move_x[14:10] = move_x[19:15] <= 5'd9 ? move_x[19:15] : move_x[14:10] + 5'd1;
+    //       move_x[9:5] = move_x[19:15] <= 5'd9 ? move_x[19:15] : move_x[9:5] + 5'd1;
+    //       move_x[4:0] = move_x[19:15] <= 5'd9 ? move_x[19:15] : move_x[4:0] + 5'd1;
+    //     end
+    //     S: begin
+    //       move_y[19:15] = move_y[19:15] >= 5'd19 ? move_y[19:15] : move_y[19:15] + 5'd1;
+    //       move_y[14:10] = move_y[19:15] >= 5'd19 ? move_y[19:15] : move_y[14:10] + 5'd1;
+    //       move_y[9:5] = move_y[19:15] >= 5'd19 ? move_y[19:15] : move_y[9:5] + 5'd1;
+    //       move_y[4:0] = move_y[19:15] >= 5'd19 ? move_y[19:15] : move_y[4:0] + 5'd1;
+    //       counter_in = 5'd1;
+    //     end
+    //     default: ;
+    //   endcase
+    // end
   end
 end
 
