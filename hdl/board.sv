@@ -8,11 +8,12 @@ module board (
     input  logic Reset,             // Active-high reset signal
     input  logic [4:0] x_coord,     // X-coordinate of top-left corner of 4x4 block
     input  logic [4:0] y_coord,     // Y-coordinate of top-left corner of 4x4 block
-    input  logic [4:0] x_block,
-    input  logic [4:0] y_block,
+    input  logic [19:0] x_block,
+    input  logic [19:0] y_block,
+    input  logic [19:0] save_xblock,
+    input  logic [19:0] save_yblock,
     input  block_color block,
     input  direction movement,
-    input  logic has_moved,
     // input  logic [19:0] lines,      // Indiciates which lines to clear
     output block_color current_pixel // 10x20 column major board, each square represented by 3 bits
 );
@@ -24,8 +25,6 @@ logic [9:0] row;
 logic [9:0] col;
 
 orientation rotation;
-logic x_match;
-logic y_match;
 
 assign current_pixel = board_arr[x_coord][y_coord];
 
@@ -38,9 +37,6 @@ enum logic [3:0] {
     GENERATE
 } state, next_state;
 
-assign x_match = x_coord > 5'd2 && x_coord < 5'd7;
-assign y_match = y_coord < 5'd1;
-
 always_ff @(posedge Clk) 
 begin
     if (Reset) begin
@@ -50,23 +46,15 @@ begin
             end
         end
     end
-    else begin
-        if (has_moved) begin
-            unique case (movement)
-                LEFT: ;
-                RIGHT: ;
-                DOWN: begin
-                    board_arr[x_coord][y_coord-1] <= EMPTY;
-                    board_arr[x_coord+1][y_coord-1] <= EMPTY;
-                    board_arr[x_coord+2][y_coord-1] <= EMPTY;
-                    board_arr[x_coord+3][y_coord-1] <= EMPTY;
-                end
-            endcase
-        end
-        if (x_match & y_match) begin
-            board_arr[x_coord][y_coord] <= CYAN;
-        end
-    end
+    board_arr[save_xblock[19:15]][save_yblock[19:15]] <= EMPTY;
+    board_arr[save_xblock[14:10]][save_yblock[14:10]] <= EMPTY;
+    board_arr[save_xblock[9:5]][save_yblock[9:5]] <= EMPTY;
+    board_arr[save_xblock[4:0]][save_yblock[4:0]] <= EMPTY;
+
+    board_arr[x_block[19:15]][y_block[19:15]] <= block;
+    board_arr[x_block[14:10]][y_block[14:10]] <= block;
+    board_arr[x_block[9:5]][y_block[9:5]] <= block;
+    board_arr[x_block[4:0]][y_block[4:0]] <= block;
 end
 
 always_comb
@@ -99,17 +87,5 @@ begin
         default: ;
     endcase
 end
-
-// always_comb
-// begin
-//     if (ADD) begin
-//         if (block_arr[0] == 1'b1) begin
-//             next_board[x_coord*60 + y_coord*3] = block_color[2];
-//             next_board[x_coord*60 + y_coord*3 + 1] = block_color[1];
-//             next_board[x_coord*60 + y_coord*3 + 2] = block_color[0];
-//         end
-
-//     end
-// end
     
 endmodule

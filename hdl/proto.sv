@@ -19,13 +19,15 @@ module  proto( input         Clk,                // 50 MHz clock
                              frame_clk,          // The clock indicating a new frame (~60Hz)
                input [9:0]   DrawX, DrawY,       // Current pixel coordinates
                input [7:0]   keycode,
-               output logic  is_ball,            // Whether current pixel belongs to ball or background
                output logic  play_area,          // Current coordinates in play area
                output logic [4:0] x_coord,
                output logic [4:0] y_coord,
-               output logic [4:0] x_block,
-               output logic [4:0] y_block,
-               output block_color block
+               output logic [19:0] x_block,
+               output logic [19:0] y_block,
+               output logic [19:0] save_yblock,
+               output logic [19:0] save_xblock,
+               output block_color block,
+               output direction movement
               );
     
 parameter [9:0] x_min = 10'd0;       // Leftmost point on the X axis
@@ -39,12 +41,11 @@ parameter [9:0] playy_max = 10'd439;
 parameter [9:0] y_step = 10'd20;
 
 logic [7:0] W, A, S, D;
-logic [5:0] counter;
-logic bouncing;
+logic [4:0] counter;
+logic [4:0] counter_in;
 
-logic [9:0] Ball_X_Pos, Ball_X_Motion, Ball_Y_Pos, Ball_Y_Motion;
-logic [9:0] Ball_X_Pos_in, Ball_X_Motion_in, Ball_Y_Pos_in, Ball_Y_Motion_in;
-
+logic [19:0] move_x;
+logic [19:0] move_y;
 
 // Hex values corresponding to keys pressed from keyboard
 assign W = 8'h1a;
@@ -58,49 +59,52 @@ assign block = CYAN;
 logic frame_clk_delayed, frame_clk_rising_edge;
 always_ff @ (posedge Clk)
 begin
-  if (Reset)
-    counter <= 5'd0;
-  frame_clk_delayed <= frame_clk;
-  frame_clk_rising_edge <= (frame_clk == 1'b1) && (frame_clk_delayed == 1'b0);
-  if (frame_clk_rising_edge) begin
-    counter <= counter + 5'd1;
-    if (counter == 5'd16)
-      counter <= 5'd1;
-  end
-end
-
-// Update registers
-always_ff @ (posedge Clk)
-begin
   if (Reset) begin
-
+    counter <= 5'd0;
+    x_block <= {5'd3, 5'd4, 5'd5, 5'd6};
+    y_block <= {5'd0, 5'd0, 5'd0, 5'd0};
   end
   else begin
-
+    counter <= counter_in;
+    save_xblock <= x_block;
+    save_yblock <= y_block;
+    x_block <= {5'd3, 5'd4, 5'd5, 5'd6};
+    y_block <= move_y;
   end
+  frame_clk_delayed <= frame_clk;
+  frame_clk_rising_edge <= (frame_clk == 1'b1) && (frame_clk_delayed == 1'b0);
 end
 
 always_comb
 begin
+  counter_in = counter;
+  move_x = x_block;
+  move_y = y_block;
   // Update position and motion only at rising edge of frame clock
-  if (frame_clk_rising_edge && counter == 5'd15) begin
-    // Be careful when using comparators with "logic" datatype because compiler treats 
-    //   both sides of the operator as UNSIGNED numbers.
-    if (1'b0) begin
-      unique case (keycode)
-        A: begin
+  if (frame_clk_rising_edge && counter == 5'd15) begin  
+    move_y[19:15] = move_y[19:15] >= 5'd19 ? move_y[19:15] : move_y[19:15] + 5'd1;
+    move_y[14:10] = move_y[19:15] >= 5'd19 ? move_y[19:15] : move_y[14:10] + 5'd1;
+    move_y[9:5] = move_y[19:15] >= 5'd19 ? move_y[19:15] : move_y[9:5] + 5'd1;
+    move_y[4:0] = move_y[19:15] >= 5'd19 ? move_y[19:15] : move_y[4:0] + 5'd1;
+    // if (1'b0) begin
+    //   unique case (keycode)
+    //     A: begin
 
-        end
-        S: begin
+    //     end
+    //     S: begin
 
-        end
-        D: begin
+    //     end
+    //     D: begin
 
-        end
-        default: ;
-      endcase
-    end
-
+    //     end
+    //     default: ;
+    //   endcase
+    // end
+  end
+  if (frame_clk_rising_edge) begin
+    counter_in = counter_in + 5'd1;
+    if (counter_in >= 5'd16)
+      counter_in = 5'd1;
   end
 end
 

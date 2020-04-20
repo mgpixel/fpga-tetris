@@ -61,9 +61,12 @@ module tetris(input              CLOCK_50,
     logic play_area;
     logic [9:0] DrawX, DrawY;
     logic [4:0] x_coord, y_coord;
-    logic [4:0] x_block = 5'd3;
-    logic [4:0] y_block = 5'd0;
-
+    logic [19:0] x_block;
+    logic [19:0] y_block;
+    logic [19:0] save_xblock;
+    logic [19:0] save_yblock;
+    direction movement;
+    block_color block;
     block_color current_pixel;
     
     // Interface between NIOS II and EZ-OTG chip
