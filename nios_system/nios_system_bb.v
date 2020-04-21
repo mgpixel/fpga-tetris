@@ -23,7 +23,7 @@ module nios_system (
 	sdram_wire_we_n);	
 
 	input		clk_clk;
-	output	[7:0]	keycode_export;
+	output	[31:0]	keycode_export;
 	input	[1:0]	keys_wire_export;
 	output	[1:0]	otg_hpi_address_export;
 	output		otg_hpi_cs_export;

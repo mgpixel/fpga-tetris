@@ -48,7 +48,7 @@ module tetris(input              CLOCK_50,
 );
     
     logic Reset_h, Clk;
-    logic [7:0] keycode;
+    logic [31:0] keycode;
     
     assign Clk = CLOCK_50;
     always_ff @ (posedge Clk) begin
@@ -59,12 +59,15 @@ module tetris(input              CLOCK_50,
     logic [15:0] hpi_data_in, hpi_data_out;
     logic hpi_r, hpi_w, hpi_cs, hpi_reset;
     logic play_area;
+    logic can_move;
     logic [9:0] DrawX, DrawY;
     logic [4:0] x_coord, y_coord;
     logic [19:0] x_block;
     logic [19:0] y_block;
     logic [19:0] save_xblock;
     logic [19:0] save_yblock;
+    logic [19:0] rot_xblock;
+    logic [19:0] rot_yblock;
     direction movement;
     block_color block;
     block_color current_pixel;

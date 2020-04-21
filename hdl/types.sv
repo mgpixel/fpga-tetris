@@ -24,12 +24,13 @@ typedef enum logic [2:0] {
 typedef enum logic [1:0] {
   LEFT,
   RIGHT,
-  DOWN
+  DOWN,
+  ROTATE
 } direction;
 
 typedef enum logic [1:0] {
-  ROT_LEFT1,
-  ROT_RIGHT1,
+  ROT_LEFT,
+  ROT_RIGHT,
   ROT2,
   NORMAL
 } orientation;

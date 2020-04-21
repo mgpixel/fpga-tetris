@@ -12,10 +12,13 @@ module board (
     input  logic [19:0] y_block,
     input  logic [19:0] save_xblock,
     input  logic [19:0] save_yblock,
+    input  logic [19:0] rot_xblock,
+    input  logic [19:0] rot_yblock,
     input  block_color block,
     input  direction movement,
     // input  logic [19:0] lines,      // Indiciates which lines to clear
-    output block_color current_pixel // 10x20 column major board, each square represented by 3 bits
+    output block_color current_pixel,  // 10x20 column major board, each square represented by 3 bits
+    output logic can_move
 );
 
 block_color board_arr[x_size][y_size];
@@ -27,15 +30,6 @@ logic [9:0] col;
 orientation rotation;
 
 assign current_pixel = board_arr[x_coord][y_coord];
-
-enum logic [3:0] {
-    ADD,
-    CLEAR,
-    GAME,
-    DONE,
-    INIT,
-    GENERATE
-} state, next_state;
 
 always_ff @(posedge Clk) 
 begin
@@ -57,35 +51,4 @@ begin
     board_arr[x_block[4:0]][y_block[4:0]] <= block;
 end
 
-always_comb
-begin
-    next_state = state;
-    unique case (next_state)
-        INIT:
-            next_state = GENERATE;
-        GENERATE:
-            next_state = ADD;
-        CLEAR:
-            next_state = ADD;
-        ADD:
-            next_state = GAME;
-        GAME: ;
-        DONE: ;
-        default:
-            next_state = INIT;
-    endcase
-
-    unique case (state)
-        INIT: ;
-        GENERATE: ;
-        CLEAR: ;
-        ADD: begin
-
-        end
-        GAME: ;
-        DONE: ;
-        default: ;
-    endcase
-end
-    
 endmodule
