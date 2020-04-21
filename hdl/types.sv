@@ -22,13 +22,6 @@ typedef enum logic [2:0] {
 } block_t;
 
 typedef enum logic [1:0] {
-  LEFT,
-  RIGHT,
-  DOWN,
-  ROTATE
-} direction;
-
-typedef enum logic [1:0] {
   ROT_LEFT,
   ROT_RIGHT,
   ROT2,

@@ -59,16 +59,26 @@ module tetris(input              CLOCK_50,
     logic [15:0] hpi_data_in, hpi_data_out;
     logic hpi_r, hpi_w, hpi_cs, hpi_reset;
     logic play_area;
-    logic can_move;
+    logic [4:0] can_move;
     logic [9:0] DrawX, DrawY;
     logic [4:0] x_coord, y_coord;
     logic [19:0] x_block;
     logic [19:0] y_block;
     logic [19:0] save_xblock;
     logic [19:0] save_yblock;
-    logic [19:0] rot_xblock;
-    logic [19:0] rot_yblock;
-    direction movement;
+    
+    // Possible moves that board checks are valid to not go out of bounds accidentally
+    logic [19:0] x_move_left;
+    logic [19:0] x_move_right;
+    logic [19:0] x_move_down;
+    logic [19:0] x_rotate_left;
+    logic [19:0] x_rotate_right;
+    logic [19:0] y_move_left;
+    logic [19:0] y_move_right;
+    logic [19:0] y_move_down;
+    logic [19:0] y_rotate_left;
+    logic [19:0] y_rotate_right;
+
     block_color block;
     block_color current_pixel;
     
@@ -120,17 +130,15 @@ module tetris(input              CLOCK_50,
     // Use PLL to generate the 25MHZ VGA_CLK.
     // You will have to generate it on your own in simulation.
     vga_clk vga_clk_instance(.inclk0(Clk), .c0(VGA_CLK));
-    
-    // TODO: Fill in the connections for the rest of the modules 
     VGA_controller vga_controller_instance(.Reset(Reset_h), .*);
     
-    // From vga tutorial, VGA_VS would work as the frame clock
-    // ball ball_instance(.frame_clk(VGA_VS), .Reset(Reset_h), .*);
-    proto ball_instance(.frame_clk(VGA_VS), .Reset(Reset_h), .*);
+    // Holds game logic for blocks in the game
+    block_logic blocks(.frame_clk(VGA_VS), .Reset(Reset_h), .*);
 
-    //color_mapper color_instance(.*);
+    // Maps appropriate color to pixel on the board or background
     block_color_mapper color_instance(.block_type(current_pixel), .*);
 
+    // 10x20 game board that gives pixel color at given x and y
     board game_board(.Reset(Reset_h), .*);
     
     // Display keycode on hex display
