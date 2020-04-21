@@ -50,6 +50,50 @@ parameter [9:0] playy_min = 10'd40;
 parameter [9:0] playy_max = 10'd439;
 parameter [9:0] y_step = 10'd20;
 
+// Indices corresponding to starting coordinates of block and color
+parameter [2:0] I_CYAN = 3'd0;
+parameter [2:0] J_BLUE = 3'd1;
+parameter [2:0] L_ORANGE = 3'd2;
+parameter [2:0] O_YELLOW = 3'd3;
+parameter [2:0] P_GREEN = 3'd4;
+parameter [2:0] T_MAGENTA = 3'd5;
+parameter [2:0] Z_RED = 3'd6; 
+
+logic [19:0] x_block_choices [7];
+logic [19:0] y_block_choices [7];
+block_color block_color_choices [7];
+
+// Assign starting coordinates for when a block is generated
+assign x_block_choices[I_CYAN] = {5'd3, 5'd4, 5'd5, 5'd6};
+assign y_block_choices[I_CYAN] = 20'd0;
+
+assign x_block_choices[J_BLUE] = {5'd4, 5'd4, 5'd5, 5'd6};
+assign y_block_choices[J_BLUE] = {5'd0, 5'd1, 5'd1, 5'd1};
+
+assign x_block_choices[L_ORANGE] = {5'd6, 5'd6, 5'd5, 5'd4};
+assign y_block_choices[L_ORANGE] = {5'd0, 5'd1, 5'd1, 5'd1};
+
+assign x_block_choices[O_YELLOW] = {5'd4, 5'd5, 5'd4, 5'd5};
+assign y_block_choices[O_YELLOW] = {5'd0, 5'd0, 5'd1, 5'd1};
+
+assign x_block_choices[P_GREEN] = {5'd4, 5'd5, 5'd5, 5'd6};
+assign y_block_choices[P_GREEN] = {5'd1, 5'd1, 5'd0, 5'd0};
+
+assign x_block_choices[T_MAGENTA] = {5'd4, 5'd5, 5'd5, 5'd6};
+assign y_block_choices[T_MAGENTA] = {5'd1, 5'd0, 5'd1, 5'd1};
+
+assign x_block_choices[Z_RED] = {5'd4, 5'd5, 5'd5, 5'd6};
+assign y_block_choices[Z_RED] = {5'd0, 5'd0, 5'd1, 5'd1};
+
+// Corresponding colors to blocks
+assign block_color_choices[I_CYAN] = CYAN;
+assign block_color_choices[J_BLUE] = BLUE;
+assign block_color_choices[L_ORANGE] = ORANGE;
+assign block_color_choices[O_YELLOW] = YELLOW;
+assign block_color_choices[P_GREEN] = GREEN;
+assign block_color_choices[T_MAGENTA] = MAGENTA;
+assign block_color_choices[Z_RED] = RED;
+
 logic [7:0] A, S, D, J, K, L;
 logic [5:0] down_counter;
 logic [5:0] down_counter_in;
@@ -90,7 +134,7 @@ assign K = 8'h0e;
 assign L = 8'h0f;
 
 // Default block color for testing
-assign block = CYAN;
+assign block = ORANGE;
 
 logic move_left;
 logic move_right;
@@ -125,8 +169,8 @@ begin
   if (Reset) begin
     down_counter <= 6'd0;
     key_counter <= 3'd1;
-    x_block <= {5'd3, 5'd4, 5'd5, 5'd6};
-    y_block <= {5'd4, 5'd4, 5'd4, 5'd4};
+    x_block <= x_block_choices[L_ORANGE];
+    y_block <= y_block_choices[L_ORANGE];
     cur_orientation <= NORMAL;
   end
   else begin

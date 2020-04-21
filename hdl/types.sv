@@ -11,16 +11,6 @@ typedef enum logic [2:0] {
   MAGENTA
 } block_color;
 
-typedef enum logic [2:0] {
-  I_CYAN,
-  J_BLUE,
-  L_ORANGE,
-  O_YELLOW,
-  P_GREEN,
-  T_MAGENTA,
-  Z_RED
-} block_t;
-
 typedef enum logic [1:0] {
   ROT_LEFT,
   ROT_RIGHT,
