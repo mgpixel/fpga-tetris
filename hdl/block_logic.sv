@@ -76,14 +76,14 @@ assign y_block_choices[L_ORANGE] = {5'd0, 5'd1, 5'd1, 5'd1};
 assign x_block_choices[O_YELLOW] = {5'd4, 5'd5, 5'd4, 5'd5};
 assign y_block_choices[O_YELLOW] = {5'd0, 5'd0, 5'd1, 5'd1};
 
-assign x_block_choices[P_GREEN] = {5'd4, 5'd5, 5'd5, 5'd6};
-assign y_block_choices[P_GREEN] = {5'd1, 5'd1, 5'd0, 5'd0};
+assign x_block_choices[P_GREEN] = {5'd6, 5'd5, 5'd5, 5'd4};
+assign y_block_choices[P_GREEN] = {5'd0, 5'd0, 5'd1, 5'd1};
 
 assign x_block_choices[T_MAGENTA] = {5'd4, 5'd5, 5'd5, 5'd6};
 assign y_block_choices[T_MAGENTA] = {5'd1, 5'd0, 5'd1, 5'd1};
 
 assign x_block_choices[Z_RED] = {5'd4, 5'd5, 5'd5, 5'd6};
-assign y_block_choices[Z_RED] = {5'd0, 5'd0, 5'd1, 5'd1};
+assign y_block_choices[Z_RED] = {5'd0, 5'd1, 5'd0, 5'd1};
 
 // Corresponding colors to blocks
 assign block_color_choices[I_CYAN] = CYAN;
@@ -134,7 +134,7 @@ assign K = 8'h0e;
 assign L = 8'h0f;
 
 // Default block color for testing
-assign block = ORANGE;
+assign block = block_color_choices[T_MAGENTA];
 
 logic move_left;
 logic move_right;
@@ -169,8 +169,8 @@ begin
   if (Reset) begin
     down_counter <= 6'd0;
     key_counter <= 3'd1;
-    x_block <= x_block_choices[L_ORANGE];
-    y_block <= y_block_choices[L_ORANGE];
+    x_block <= x_block_choices[T_MAGENTA];
+    y_block <= y_block_choices[T_MAGENTA];
     cur_orientation <= NORMAL;
   end
   else begin

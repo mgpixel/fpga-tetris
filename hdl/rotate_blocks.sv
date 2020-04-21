@@ -161,27 +161,26 @@ begin
        ** */
     // do nothing for square
     YELLOW: ;
-    // TODO: Finish green, red, magenta rotations
     /*  **
        **  */
     GREEN: begin
       if (rotate_left == 1'b1) begin
         case (cur_orientation)
           NORMAL: begin
-            rot_xblock = {x_block[19:15], x_block[14:10], x_block[9:5], x_block[4:0]};
-            rot_yblock = {y_block[19:15], y_block[14:10], y_block[9:5], y_block[4:0]};
+            rot_xblock = {x_block[19:15]-5'd2, x_block[14:10]-5'd1, x_block[9:5], x_block[4:0]+5'd1};
+            rot_yblock = {y_block[19:15], y_block[14:10]+5'd1, y_block[9:5], y_block[4:0]+5'd1};
           end
           ROT_LEFT: begin
-            rot_xblock = {x_block[19:15], x_block[14:10], x_block[9:5], x_block[4:0]};
-            rot_yblock = {y_block[19:15], y_block[14:10], y_block[9:5], y_block[4:0]};
+            rot_xblock = {x_block[19:15], x_block[14:10]+5'd1, x_block[9:5], x_block[4:0]+5'd1};
+            rot_yblock = {y_block[19:15]+5'd2, y_block[14:10]+5'd1, y_block[9:5], y_block[4:0]-5'd1};
           end
           ROT2: begin
-            rot_xblock = {x_block[19:15], x_block[14:10], x_block[9:5], x_block[4:0]};
-            rot_yblock = {y_block[19:15], y_block[14:10], y_block[9:5], y_block[4:0]};
+            rot_xblock = {x_block[19:15]+5'd2, x_block[14:10]+5'd1, x_block[9:5], x_block[4:0]-5'd1};
+            rot_yblock = {y_block[19:15], y_block[14:10]-5'd1, y_block[9:5], y_block[4:0]-5'd1};
           end
           ROT_RIGHT: begin
-            rot_xblock = {x_block[19:15], x_block[14:10], x_block[9:5], x_block[4:0]};
-            rot_yblock = {y_block[19:15], y_block[14:10], y_block[9:5], y_block[4:0]};
+            rot_xblock = {x_block[19:15], x_block[14:10]-5'd1, x_block[9:5], x_block[4:0]-5'd1};
+            rot_yblock = {y_block[19:15]-5'd2, y_block[14:10]-5'd1, y_block[9:5], y_block[4:0]+5'd1};
           end
           default: ;
         endcase
@@ -189,20 +188,20 @@ begin
       else begin
         case (cur_orientation)
           NORMAL: begin
-            rot_xblock = {x_block[19:15], x_block[14:10], x_block[9:5], x_block[4:0]};
-            rot_yblock = {y_block[19:15], y_block[14:10], y_block[9:5], y_block[4:0]};
+            rot_xblock = {x_block[19:15], x_block[14:10]+5'd1, x_block[9:5], x_block[4:0]+5'd1};
+            rot_yblock = {y_block[19:15]+5'd2, y_block[14:10]+5'd1, y_block[9:5], y_block[4:0]-5'd1};
           end
           ROT_RIGHT: begin
-            rot_xblock = {x_block[19:15], x_block[14:10], x_block[9:5], x_block[4:0]};
-            rot_yblock = {y_block[19:15], y_block[14:10], y_block[9:5], y_block[4:0]};
+            rot_xblock = {x_block[19:15]-5'd2, x_block[14:10]-5'd1, x_block[9:5], x_block[4:0]+5'd1};
+            rot_yblock = {y_block[19:15], y_block[14:10]+5'd1, y_block[9:5], y_block[4:0]+5'd1};
           end
           ROT2: begin
-            rot_xblock = {x_block[19:15], x_block[14:10], x_block[9:5], x_block[4:0]};
-            rot_yblock = {y_block[19:15], y_block[14:10], y_block[9:5], y_block[4:0]};
+            rot_xblock = {x_block[19:15], x_block[14:10]-5'd1, x_block[9:5], x_block[4:0]-5'd1};
+            rot_yblock = {y_block[19:15]-5'd2, y_block[14:10]-5'd1, y_block[9:5], y_block[4:0]+5'd1};
           end
           ROT_LEFT: begin
-            rot_xblock = {x_block[19:15], x_block[14:10], x_block[9:5], x_block[4:0]};
-            rot_yblock = {y_block[19:15], y_block[14:10], y_block[9:5], y_block[4:0]};
+            rot_xblock = {x_block[19:15]+5'd2, x_block[14:10]+5'd1, x_block[9:5], x_block[4:0]-5'd1};
+            rot_yblock = {y_block[19:15], y_block[14:10]-5'd1, y_block[9:5], y_block[4:0]-5'd1};
           end
           default: ;
         endcase
@@ -214,20 +213,20 @@ begin
       if (rotate_left == 1'b1) begin
         case (cur_orientation)
           NORMAL: begin
-            rot_xblock = {x_block[19:15], x_block[14:10], x_block[9:5], x_block[4:0]};
-            rot_yblock = {y_block[19:15], y_block[14:10], y_block[9:5], y_block[4:0]};
+            rot_xblock = {x_block[19:15], x_block[14:10]-5'd1, x_block[9:5], x_block[4:0]-5'd1};
+            rot_yblock = {y_block[19:15]+5'd2, y_block[14:10]+5'd1, y_block[9:5], y_block[4:0]-5'd1};
           end
           ROT_LEFT: begin
-            rot_xblock = {x_block[19:15], x_block[14:10], x_block[9:5], x_block[4:0]};
-            rot_yblock = {y_block[19:15], y_block[14:10], y_block[9:5], y_block[4:0]};
+            rot_xblock = {x_block[19:15]+5'd2, x_block[14:10]+5'd1, x_block[9:5], x_block[4:0]-5'd1};
+            rot_yblock = {y_block[19:15], y_block[14:10]+5'd1, y_block[9:5], y_block[4:0]+5'd1};
           end
           ROT2: begin
-            rot_xblock = {x_block[19:15], x_block[14:10], x_block[9:5], x_block[4:0]};
-            rot_yblock = {y_block[19:15], y_block[14:10], y_block[9:5], y_block[4:0]};
+            rot_xblock = {x_block[19:15], x_block[14:10]+5'd1, x_block[9:5], x_block[4:0]+5'd1};
+            rot_yblock = {y_block[19:15]-5'd2, y_block[14:10]-5'd1, y_block[9:5], y_block[4:0]+5'd1};
           end
           ROT_RIGHT: begin
-            rot_xblock = {x_block[19:15], x_block[14:10], x_block[9:5], x_block[4:0]};
-            rot_yblock = {y_block[19:15], y_block[14:10], y_block[9:5], y_block[4:0]};
+            rot_xblock = {x_block[19:15]-5'd2, x_block[14:10]-5'd1, x_block[9:5], x_block[4:0]+5'd1};
+            rot_yblock = {y_block[19:15], y_block[14:10]-5'd1, y_block[9:5], y_block[4:0]-5'd1};
           end
           default: ;
         endcase
@@ -235,45 +234,46 @@ begin
       else begin
         case (cur_orientation)
           NORMAL: begin
-            rot_xblock = {x_block[19:15], x_block[14:10], x_block[9:5], x_block[4:0]};
-            rot_yblock = {y_block[19:15], y_block[14:10], y_block[9:5], y_block[4:0]};
+            rot_xblock = {x_block[19:15]+5'd2, x_block[14:10]+5'd1, x_block[9:5], x_block[4:0]-5'd1};
+            rot_yblock = {y_block[19:15], y_block[14:10]+5'd1, y_block[9:5], y_block[4:0]+5'd1};
           end
           ROT_RIGHT: begin
-            rot_xblock = {x_block[19:15], x_block[14:10], x_block[9:5], x_block[4:0]};
-            rot_yblock = {y_block[19:15], y_block[14:10], y_block[9:5], y_block[4:0]};
+            rot_xblock = {x_block[19:15], x_block[14:10]-5'd1, x_block[9:5], x_block[4:0]-5'd1};
+            rot_yblock = {y_block[19:15]+5'd2, y_block[14:10]+5'd1, y_block[9:5], y_block[4:0]-5'd1};
           end
           ROT2: begin
-            rot_xblock = {x_block[19:15], x_block[14:10], x_block[9:5], x_block[4:0]};
-            rot_yblock = {y_block[19:15], y_block[14:10], y_block[9:5], y_block[4:0]};
+            rot_xblock = {x_block[19:15]-5'd2, x_block[14:10]-5'd1, x_block[9:5], x_block[4:0]+5'd1};
+            rot_yblock = {y_block[19:15], y_block[14:10]-5'd1, y_block[9:5], y_block[4:0]-5'd1};
           end
           ROT_LEFT: begin
-            rot_xblock = {x_block[19:15], x_block[14:10], x_block[9:5], x_block[4:0]};
-            rot_yblock = {y_block[19:15], y_block[14:10], y_block[9:5], y_block[4:0]};
+            rot_xblock = {x_block[19:15], x_block[14:10]+5'd1, x_block[9:5], x_block[4:0]+5'd1};
+            rot_yblock = {y_block[19:15]-5'd2, y_block[14:10]-5'd1, y_block[9:5], y_block[4:0]+5'd1};
           end
           default: ;
         endcase
       end
     end
+    // TODO: Finish magenta rotations
     /*  *
        *** */
     MAGENTA: begin
       if (rotate_left == 1'b1) begin
         case (cur_orientation)
           NORMAL: begin
-            rot_xblock = {x_block[19:15], x_block[14:10], x_block[9:5], x_block[4:0]};
-            rot_yblock = {y_block[19:15], y_block[14:10], y_block[9:5], y_block[4:0]};
+            rot_xblock = {x_block[19:15]+5'd1, x_block[14:10]-5'd1, x_block[9:5], x_block[4:0]-5'd1};
+            rot_yblock = {y_block[19:15]+5'd1, y_block[14:10]+5'd1, y_block[9:5], y_block[4:0]-5'd1};
           end
           ROT_LEFT: begin
-            rot_xblock = {x_block[19:15], x_block[14:10], x_block[9:5], x_block[4:0]};
-            rot_yblock = {y_block[19:15], y_block[14:10], y_block[9:5], y_block[4:0]};
+            rot_xblock = {x_block[19:15]+5'd1, x_block[14:10]+5'd1, x_block[9:5], x_block[4:0]-5'd1};
+            rot_yblock = {y_block[19:15]-5'd1, y_block[14:10]+5'd1, y_block[9:5], y_block[4:0]+5'd1};
           end
           ROT2: begin
-            rot_xblock = {x_block[19:15], x_block[14:10], x_block[9:5], x_block[4:0]};
-            rot_yblock = {y_block[19:15], y_block[14:10], y_block[9:5], y_block[4:0]};
+            rot_xblock = {x_block[19:15]-5'd1, x_block[14:10]+5'd1, x_block[9:5], x_block[4:0]+5'd1};
+            rot_yblock = {y_block[19:15]-5'd1, y_block[14:10]-5'd1, y_block[9:5], y_block[4:0]+5'd1};
           end
           ROT_RIGHT: begin
-            rot_xblock = {x_block[19:15], x_block[14:10], x_block[9:5], x_block[4:0]};
-            rot_yblock = {y_block[19:15], y_block[14:10], y_block[9:5], y_block[4:0]};
+            rot_xblock = {x_block[19:15]-5'd1, x_block[14:10]-5'd1, x_block[9:5], x_block[4:0]+5'd1};
+            rot_yblock = {y_block[19:15]+5'd1, y_block[14:10]-5'd1, y_block[9:5], y_block[4:0]-5'd1};
           end
           default: ;
         endcase
@@ -281,20 +281,20 @@ begin
       else begin
         case (cur_orientation)
           NORMAL: begin
-            rot_xblock = {x_block[19:15], x_block[14:10], x_block[9:5], x_block[4:0]};
-            rot_yblock = {y_block[19:15], y_block[14:10], y_block[9:5], y_block[4:0]};
+            rot_xblock = {x_block[19:15]+5'd1, x_block[14:10]+5'd1, x_block[9:5], x_block[4:0]-5'd1};
+            rot_yblock = {y_block[19:15]-5'd1, y_block[14:10]+5'd1, y_block[9:5], y_block[4:0]+5'd1};
           end
           ROT_RIGHT: begin
-            rot_xblock = {x_block[19:15], x_block[14:10], x_block[9:5], x_block[4:0]};
-            rot_yblock = {y_block[19:15], y_block[14:10], y_block[9:5], y_block[4:0]};
+            rot_xblock = {x_block[19:15]+5'd1, x_block[14:10]-5'd1, x_block[9:5], x_block[4:0]-5'd1};
+            rot_yblock = {y_block[19:15]+5'd1, y_block[14:10]+5'd1, y_block[9:5], y_block[4:0]-5'd1};
           end
           ROT2: begin
-            rot_xblock = {x_block[19:15], x_block[14:10], x_block[9:5], x_block[4:0]};
-            rot_yblock = {y_block[19:15], y_block[14:10], y_block[9:5], y_block[4:0]};
+            rot_xblock = {x_block[19:15]-5'd1, x_block[14:10]-5'd1, x_block[9:5], x_block[4:0]+5'd1};
+            rot_yblock = {y_block[19:15]+5'd1, y_block[14:10]-5'd1, y_block[9:5], y_block[4:0]-5'd1};
           end
           ROT_LEFT: begin
-            rot_xblock = {x_block[19:15], x_block[14:10], x_block[9:5], x_block[4:0]};
-            rot_yblock = {y_block[19:15], y_block[14:10], y_block[9:5], y_block[4:0]};
+            rot_xblock = {x_block[19:15]-5'd1, x_block[14:10]+5'd1, x_block[9:5], x_block[4:0]+5'd1};
+            rot_yblock = {y_block[19:15]-5'd1, y_block[14:10]-5'd1, y_block[9:5], y_block[4:0]+5'd1};
           end
           default: ;
         endcase
