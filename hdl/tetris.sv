@@ -78,6 +78,7 @@ module tetris(input              CLOCK_50,
     logic [19:0] y_move_down;
     logic [19:0] y_rotate_left;
     logic [19:0] y_rotate_right;
+    logic get_new_block;
 
     block_color block;
     block_color current_pixel;

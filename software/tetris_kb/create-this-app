@@ -3,9 +3,9 @@
 # This script creates the blank_project application in this directory.
 
 
-BSP_DIR=../usb_kb_bsp
+BSP_DIR=../tetris_kb_bsp
 QUARTUS_PROJECT_DIR=../../
-NIOS2_APP_GEN_ARGS="--elf-name usb_kb.elf --no-src --set OBJDUMP_INCLUDE_SOURCE 1"
+NIOS2_APP_GEN_ARGS="--elf-name tetris_kb.elf --no-src --set OBJDUMP_INCLUDE_SOURCE 1"
 
 
 # First, check to see if $SOPC_KIT_NIOS2 environmental variable is set.

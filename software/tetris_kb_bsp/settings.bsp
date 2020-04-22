@@ -2,9 +2,9 @@
 <sch:Settings xmlns:sch="http://www.altera.com/embeddedsw/bsp/schema">
         <BspType>hal</BspType>
         <BspVersion>default</BspVersion>
-        <BspGeneratedTimeStamp>Apr 21, 2020 1:56:44 AM</BspGeneratedTimeStamp>
-        <BspGeneratedUnixTimeStamp>1587452204069</BspGeneratedUnixTimeStamp>
-        <BspGeneratedLocation>/home/shoe/ece385/lab8/software/usb_kb_bsp</BspGeneratedLocation>
+        <BspGeneratedTimeStamp>Apr 22, 2020 9:13:30 AM</BspGeneratedTimeStamp>
+        <BspGeneratedUnixTimeStamp>1587564810966</BspGeneratedUnixTimeStamp>
+        <BspGeneratedLocation>/home/shoe/ece385/tetris/software/tetris_kb_bsp</BspGeneratedLocation>
         <BspSettingsFile>settings.bsp</BspSettingsFile>
         <SopcDesignFile>../../nios_system.sopcinfo</SopcDesignFile>
         <JdiFile>default</JdiFile>

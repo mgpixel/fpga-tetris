@@ -37,6 +37,7 @@ module  block_logic( input         Clk,                // 50 MHz clock
                output logic [19:0] y_move_down,
                output logic [19:0] y_rotate_left,
                output logic [19:0] y_rotate_right,
+               output logic get_new_block,
                output block_color block
               );
     
@@ -176,11 +177,20 @@ begin
   else begin
     down_counter <= down_counter_in;
     key_counter <= key_counter_in;
-    save_xblock <= x_block;
-    save_yblock <= y_block;
-    x_block <= move_x;
-    y_block <= move_y;
-    cur_orientation <= new_orientation;
+    if (get_new_block) begin
+      x_block <= x_block_choices[T_MAGENTA];
+      y_block <= y_block_choices[T_MAGENTA];
+      save_xblock <= x_block_choices[T_MAGENTA];
+      save_yblock <= y_block_choices[T_MAGENTA];
+      cur_orientation <= NORMAL;
+    end
+    else begin
+      save_xblock <= x_block;
+      save_yblock <= y_block;
+      x_block <= move_x;
+      y_block <= move_y;
+      cur_orientation <= new_orientation;
+    end
   end
   frame_clk_delayed <= frame_clk;
   frame_clk_rising_edge <= (frame_clk == 1'b1) && (frame_clk_delayed == 1'b0);
@@ -211,10 +221,15 @@ begin
   move_y = y_block;
   new_orientation = cur_orientation;
   key_counter_in = key_counter;
+  get_new_block = 1'b0;
   // Update position and motion only at rising edge of frame clock
-  if (frame_clk_rising_edge && down_counter == 6'd60) begin
+  if (frame_clk_rising_edge && down_counter == 6'd20) begin
     if (down_valid) begin
       move_y = y_move_down;
+    end
+    // Reached the end, spawn a new block
+    else begin
+      get_new_block = 1'b1;
     end
   end
   else if (frame_clk_rising_edge && key_counter == 3'd0) begin
@@ -235,7 +250,7 @@ begin
           new_orientation = NORMAL;
       endcase
     end
-    if (rotate_right && rotate_right_valid) begin
+    else if (rotate_right && rotate_right_valid) begin
       move_x = x_rotate_right;
       move_y = y_rotate_right;
       case (cur_orientation)
@@ -252,11 +267,11 @@ begin
       endcase
     end
     // Linear movement
-    if (move_right && right_valid) begin
+    else if (move_right && right_valid) begin
       move_x = x_move_right;
       move_y = y_move_right;
     end
-    if (move_left && left_valid) begin
+    else if (move_left && left_valid) begin
       move_x = x_move_left;
       move_y = y_move_left;
     end
@@ -265,7 +280,7 @@ begin
   if (frame_clk_rising_edge) begin
     down_counter_in = down_counter_in + 6'd1;
     key_counter_in = key_counter_in + 3'd1;
-    if (down_counter_in >= 6'd61)
+    if (down_counter_in >= 6'd21)
       down_counter_in = 6'd1;
   end
 end
