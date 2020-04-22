@@ -160,7 +160,10 @@ begin
     /* **
        ** */
     // do nothing for square
-    YELLOW: ;
+    YELLOW: begin
+      rot_xblock = x_block;
+      rot_yblock = y_block;
+    end
     /*  **
        **  */
     GREEN: begin
@@ -253,7 +256,6 @@ begin
         endcase
       end
     end
-    // TODO: Finish magenta rotations
     /*  *
        *** */
     MAGENTA: begin

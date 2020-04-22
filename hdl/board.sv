@@ -42,7 +42,7 @@ function logic checkBlockMatch(logic [4:0] xcheck, logic [4:0] ycheck);
            (xcheck == x_block[9:5] && ycheck == y_block[9:5]) || (xcheck == x_block[4:0] && ycheck == y_block[4:0]));
 endfunction
 
-// For each x and y coordinate given, check that the block is occupied by its respective tetrinome,
+// For each x and y coordinate given, check that the block is occupied by its respective tetromino,
 // or it's an empty space that the block can move to. Only true when all 4 x,y coordinates are good.
 function logic checkBoardSpaces(logic [19:0] xparam, logic[19:0] yparam);
     logic x1y1good, x2y2good, x3y3good, x4y4good;
