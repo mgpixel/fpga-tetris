@@ -34,4 +34,11 @@ begin
             curr_row = curr_row + 1;   
         end
     end
+
+    // Make sure the top lines are cleared
+    for (row = curr_row; row >= 0; row = row - 1) begin
+        for (col = 0; col < x_size; col = col + 1) begin
+            new_board[col][curr_row] = EMPTY;
+        end
+    end
 end
