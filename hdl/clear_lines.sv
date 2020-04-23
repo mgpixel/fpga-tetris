@@ -25,14 +25,14 @@ begin
            (board_arr[7][row] != EMPTY) && \
            (board_arr[8][row] != EMPTY) && \
            (board_arr[9][row] != EMPTY) begin
-           num_lines += 1
+            num_lines += 1
             for (col = 0; col < x_size; col = col + 1) begin
-                new_board[col][row] = board_arr[col][row];
+                new_board[col][row] = EMPTY;
             end
         end
         else begin
             for (col = 0; col < x_size; col = col + 1) begin
-                new_board[col][row] = EMPTY;
+                new_board[col][row] = board_arr[col][row];
             end
         end
     end
