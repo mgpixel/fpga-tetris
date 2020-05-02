@@ -13,3 +13,4 @@ db
 simulation
 *.d
 *.o
+*.objdump
