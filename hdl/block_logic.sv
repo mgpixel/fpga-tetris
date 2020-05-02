@@ -52,8 +52,8 @@ parameter [9:0] playx_min = 10'd220;
 parameter [9:0] playx_max = 10'd419;
 parameter [9:0] playy_min = 10'd40;
 parameter [9:0] playy_max = 10'd439;
-parameter [9:0] scorex_min = 10'd10;
-parameter [9:0] scorex_max = 10'd17;
+parameter [9:0] scorex_min = 10'd296;
+parameter [9:0] scorex_max = 10'd343;
 parameter [9:0] scorey_min = 10'd10;
 parameter [9:0] scorey_max = 10'd25;
 parameter [5:0] level_speed = 6'd60;
@@ -75,6 +75,9 @@ logic [19:0] y_block_choices [7];
 
 block_color block_color_choices [7];
 block_color block_in;
+block_color held_block = EMPTY;
+logic switch_block;
+logic is_block_switched;
 logic [3:0] i;
 
 logic [7:0] A, S, D, J, K, L;
@@ -83,6 +86,7 @@ logic [5:0] down_counter_in;
 logic [2:0] block_idx;
 logic [2:0] cur_block_idx;
 logic [2:0] block_idx_in;
+logic [2:0] switch_block_idx;
 
 logic [19:0] move_x;
 logic [19:0] move_y;
@@ -165,14 +169,13 @@ assign rotate_left = (key == J) | (key2 == J) | (key3 == J) | (key4 == J);
 assign rotate_right = (key == L) | (key2 == L) | (key3 == L) | (key4 == L);
 assign hold_block = (key == K) | (key2 == K) | (key3 == K) | (key4 == K);
 
-logic left_held, right_held, rotate_left_held, rotate_right_held, hold_block_held;
+logic left_held, right_held, rotate_left_held, rotate_right_held;
 logic [3:0] speed_counter, speed_counter_in;
 
 assign left_held = (old_key == A) | (old_key2 == A) | (old_key3 == A) | (old_key4 == A);
 assign right_held = (old_key == D) | (old_key2 == D) | (old_key3 == D) | (old_key4 == D);
 assign rotate_left_held = (old_key == J) | (old_key2 == J) | (old_key3 == J) | (old_key4 == J);
 assign rotate_right_held = (old_key == L) | (old_key2 == L) | (old_key3 == L) | (old_key4 == L);
-assign hold_block_held = (old_key == K) | (old_key2 == K) | (old_key3 == K) | (old_key4 == K);
 
 rotate_blocks rotater_left(
   .rotate_left(1'b1),
@@ -200,12 +203,12 @@ tetromino_generator block_gen(
 );
 
 // When a new block is gotten, set the appropriate inputs for registers
-function void setNewBlockInputs();
-  move_x = x_block_choices[block_idx];
-  move_y = y_block_choices[block_idx];
-  save_xblock_in = x_block_choices[block_idx];
-  save_yblock_in = y_block_choices[block_idx];
-  block_in = block_color_choices[block_idx];
+function void setNewBlockInputs(logic [2:0] idx);
+  move_x = x_block_choices[idx];
+  move_y = y_block_choices[idx];
+  save_xblock_in = x_block_choices[idx];
+  save_yblock_in = y_block_choices[idx];
+  block_in = block_color_choices[idx];
   block_idx_in = block_idx;
   new_orientation = NORMAL;
   down_counter_in = 0;
@@ -226,12 +229,21 @@ begin
     save_xblock <= x_block_choices[block_idx];
     save_yblock <= y_block_choices[block_idx];
     cur_block_idx <= block_idx;
+    is_block_switched <= 1'b0;
+    held_block <= EMPTY;
   end
   else begin
     x_block <= move_x;
     y_block <= move_y;
     save_xblock <= save_xblock_in;
     save_yblock <= save_yblock_in;
+    if (switch_block) begin
+      held_block <= block;
+      switch_block_idx <= cur_block_idx;
+      is_block_switched <= 1'b1;
+    end
+    else if (get_new_block)
+      is_block_switched <= 1'b0;
     block <= block_in;
     cur_block_idx <= block_idx_in;
     cur_orientation <= new_orientation;
@@ -270,6 +282,7 @@ begin
   get_new_block = 1'b0;
   player_move = 3'd0;
   block_idx_in = cur_block_idx;
+  switch_block = 1'b0;
 
   if (Reset || BOARD_BUSY == 1'b1) /* do nothing */ ;
   // Update position and motion only at rising edge of frame clock
@@ -282,7 +295,7 @@ begin
     // Reached the end, spawn a new block
     else begin
       get_new_block = 1'b1;
-      setNewBlockInputs();
+      setNewBlockInputs(block_idx);
     end
   end
   else if (frame_clk_rising_edge) begin
@@ -342,9 +355,20 @@ begin
         end
         else begin
           get_new_block = 1'b1;
-          setNewBlockInputs();
+          setNewBlockInputs(block_idx);
         end
       end
+    end
+    else if (hold_block && is_block_switched == 1'b0) begin
+      switch_block = 1'b1;
+      if (held_block != EMPTY) begin
+        setNewBlockInputs(switch_block_idx);
+      end
+      else
+        setNewBlockInputs(block_idx);
+      // Setting these back for board.sv to erase data there correctly
+      save_xblock_in = x_block;
+      save_yblock_in = y_block;
     end
     else
       down_counter_in = down_counter_in + 6'd1;

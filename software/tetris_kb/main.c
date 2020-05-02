@@ -53,6 +53,7 @@ int main(void)
 	alt_u16 fs_device = 0;
 	int keycode = 0;
 	int keycode2 = 0;
+	int keycode3 = 0;
 	alt_u8 toggle = 0;
 	alt_u8 data_size;
 	alt_u8 hot_plug_count;
@@ -552,7 +553,8 @@ int main(void)
 		// subsequent addresses.
 		keycode = UsbRead(0x051e);
 		keycode2 = UsbRead(0x0520);
-		printf("\nfirst four keycode values are %04x %04x\n", keycode, keycode2);
+		keycode3 = UsbRead(0x0522);
+		printf("\nfirst four keycode values are %04x %04x %04x\n", keycode, keycode2, keycode3);
 		// Send up to 4 keycodes pressed to hardware via PIO.
 		*(keycode_base) = (keycode & 0xff) | (keycode & 0xff00) | ((keycode2 & 0xff) << 16) | ((keycode2 & 0xff00) << 16);
 

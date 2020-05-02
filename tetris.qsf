@@ -592,8 +592,8 @@ set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
 set_global_assignment -name FLOW_ENABLE_RTL_VIEWER ON
 set_global_assignment -name SMART_RECOMPILE ON
 set_global_assignment -name NUM_PARALLEL_PROCESSORS 6
+set_global_assignment -name SYSTEMVERILOG_FILE hdl/score_keeper.sv
 set_global_assignment -name SYSTEMVERILOG_FILE font_rom.sv
-set_global_assignment -name SYSTEMVERILOG_FILE hdl/counter.sv
 set_global_assignment -name SYSTEMVERILOG_FILE hdl/tetromino_generator.sv
 set_global_assignment -name SYSTEMVERILOG_FILE hdl/block_logic.sv
 set_global_assignment -name SYSTEMVERILOG_FILE hdl/rotate_blocks.sv

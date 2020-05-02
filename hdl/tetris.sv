@@ -53,6 +53,7 @@ module tetris(input              CLOCK_50,
     
     assign Clk = CLOCK_50;
     always_ff @ (posedge Clk) begin
+        score_digits_in <= score_digits;
         Reset_h <= ~(KEY[0]);        // The push buttons are active low
     end
     
@@ -68,6 +69,8 @@ module tetris(input              CLOCK_50,
     logic [19:0] y_block;
     logic [19:0] save_xblock;
     logic [19:0] save_yblock;
+    logic [23:0] score_digits;
+    logic [23:0] score_digits_in;
     
     // Possible moves that board checks are valid to not go out of bounds accidentally
     logic [19:0] x_move_left;

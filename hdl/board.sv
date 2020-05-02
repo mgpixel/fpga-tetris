@@ -28,6 +28,7 @@ module board (
     // input  logic [19:0] lines,      // Indiciates which lines to clear
     output block_color current_pixel,  // 10x20 column major board, each square represented by 3 bits
     output logic BOARD_BUSY,
+    output logic [23:0] score_digits,
     output logic [4:0] can_move
 );
 
@@ -40,6 +41,8 @@ logic can_clear_row;
 logic can_clear_current;
 logic clear_row;
 logic drop_rows;
+logic update_score;
+logic save_clear_y;
 logic [4:0] i;
 logic [4:0] j;
 logic [4:0] clear_y;
@@ -50,13 +53,16 @@ logic [2:0] clear_frames = 3'd3;
 logic [2:0] clear_counter;
 logic [2:0] clear_counter_in;
 
-assign current_pixel = board_arr[x_coord][y_coord];
-
 enum logic [2:0] {
     PLAY,
     CLEAR,
-    DROP
+    DROP,
+    SCORE
 } state, next_state;
+
+assign current_pixel = board_arr[x_coord][y_coord];
+
+score_keeper score_keeper(.digits(score_digits), .num_lines(num_rows_reg), .update(update_score), .*);
 
 // Logic if a line can be cleared in the board
 always_comb
@@ -80,7 +86,7 @@ begin
     end
 end
 
-logic save_clear_y;
+// State machine logic to transition and set signals
 always_comb
 begin
     next_state = state;
@@ -93,7 +99,7 @@ begin
                 next_state = CLEAR;
             end
         end
-        // For clear and drop, only update when next frame is reached
+        // For clear and drop, only update when next frame or after specific number of frames
         CLEAR: begin
             if (frame_clk_rising_edge && clear_counter == clear_frames) begin
                 if (num_rows == 1'b1 && clear_y_reg-num_rows_reg != 5'd0)
@@ -101,13 +107,15 @@ begin
                 else if (num_rows > 1'b1)
                     next_state = CLEAR;
                 else
-                    next_state = PLAY;
+                    next_state = SCORE;
             end
         end
         DROP: begin
             if (frame_clk_rising_edge)
-                next_state = PLAY;
+                next_state = SCORE;
         end
+        SCORE:
+            next_state = PLAY;
         default:
             next_state = PLAY;
     endcase
@@ -117,6 +125,7 @@ begin
     col = 5'd0;
     row = 5'd0;
     clear_counter_in = 0;
+    update_score = 1'b0;
     // Signals based on current state
     case (state)
         PLAY: begin
@@ -157,6 +166,10 @@ begin
                     end
                 end
             end
+        end
+        SCORE: begin
+            BOARD_BUSY = 1'b1;
+            update_score = 1'b1;
         end
     endcase
 end
