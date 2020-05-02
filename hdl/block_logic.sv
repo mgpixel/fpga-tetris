@@ -21,7 +21,8 @@ module  block_logic( input         Clk,                // 50 MHz clock
                input [31:0]   keycode,
                input logic [4:0] can_move,
                input logic BOARD_BUSY,
-               output logic  play_area,          // Current coordinates in play area
+               output logic play_area,          // Current coordinates in play area
+               output logic score_area,
                output logic [4:0] x_coord,
                output logic [4:0] y_coord,
                output logic [19:0] x_block=x_block_choices[T_MAGENTA],
@@ -51,6 +52,10 @@ parameter [9:0] playx_min = 10'd220;
 parameter [9:0] playx_max = 10'd419;
 parameter [9:0] playy_min = 10'd40;
 parameter [9:0] playy_max = 10'd439;
+parameter [9:0] scorex_min = 10'd10;
+parameter [9:0] scorex_max = 10'd17;
+parameter [9:0] scorey_min = 10'd10;
+parameter [9:0] scorey_max = 10'd25;
 parameter [5:0] level_speed = 6'd60;
 parameter [3:0] s_speed = 4'd6;
 
@@ -265,6 +270,7 @@ begin
     end
     // Reached the end, spawn a new block
     else begin
+      player_move = 3'd1;
       get_new_block = 1'b1; 
     end
   end
@@ -339,6 +345,7 @@ end
 
 always_comb begin
   play_area = 1'b0;
+  score_area = 1'b0;
   x_coord = 5'd0;
   y_coord = 5'd0;
 
@@ -348,6 +355,9 @@ always_comb begin
     x_coord = (DrawX - playx_min) / 20;
     y_coord = (DrawY - playy_min) / 20;
     play_area = 1'b1;
+  end
+  else if (DrawX <= scorex_max && DrawX >= scorex_min && DrawY >= scorey_min && DrawY <= scorey_max) begin
+    score_area = 1'b1;
   end
 end
 

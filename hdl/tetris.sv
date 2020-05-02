@@ -60,6 +60,7 @@ module tetris(input              CLOCK_50,
     logic [15:0] hpi_data_in, hpi_data_out;
     logic hpi_r, hpi_w, hpi_cs, hpi_reset;
     logic play_area;
+    logic score_area;
     logic [4:0] can_move;
     logic [9:0] DrawX, DrawY;
     logic [4:0] x_coord, y_coord;

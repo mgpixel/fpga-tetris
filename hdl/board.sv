@@ -46,6 +46,9 @@ logic [4:0] clear_y;
 logic [4:0] num_rows;
 logic [4:0] clear_y_reg;
 logic [4:0] num_rows_reg;
+logic [2:0] clear_frames = 3'd3;
+logic [2:0] clear_counter;
+logic [2:0] clear_counter_in;
 
 assign current_pixel = board_arr[x_coord][y_coord];
 
@@ -90,16 +93,20 @@ begin
                 next_state = CLEAR;
             end
         end
+        // For clear and drop, only update when next frame is reached
         CLEAR: begin
-            if (num_rows == 1'b1 && clear_y_reg-num_rows_reg != 5'd0)
-                next_state = DROP;
-            else if (num_rows > 1'b1)
-                next_state = CLEAR;
-            else
-                next_state = PLAY;
+            if (frame_clk_rising_edge && clear_counter == clear_frames) begin
+                if (num_rows == 1'b1 && clear_y_reg-num_rows_reg != 5'd0)
+                    next_state = DROP;
+                else if (num_rows > 1'b1)
+                    next_state = CLEAR;
+                else
+                    next_state = PLAY;
+            end
         end
         DROP: begin
-            next_state = PLAY;
+            if (frame_clk_rising_edge)
+                next_state = PLAY;
         end
         default:
             next_state = PLAY;
@@ -109,6 +116,7 @@ begin
     board_in = board_arr;
     col = 5'd0;
     row = 5'd0;
+    clear_counter_in = 0;
     // Signals based on current state
     case (state)
         PLAY: begin
@@ -125,19 +133,27 @@ begin
         end
         CLEAR: begin
             BOARD_BUSY = 1'b1;
-            for (col = 5'd0; col < x_size; col = col + 1) begin
-                board_in[col][clear_y] = EMPTY;
+            clear_counter_in = clear_counter;
+            if (frame_clk_rising_edge) begin
+                clear_counter_in = clear_counter_in + 1;
+            end
+            if (frame_clk_rising_edge && clear_counter == clear_frames) begin
+                for (col = 5'd0; col < x_size; col = col + 1) begin
+                    board_in[col][clear_y] = EMPTY;
+                end
             end
         end
         DROP: begin
             BOARD_BUSY = 1'b1;
-            for (row = y_size - 1; row < y_size; row = row - 1) begin
-                for (col = 0; col < x_size; col = col + 1) begin
-                    // This is below the dropped line(s), at or above should be shifted appropriately
-                    if (row > (clear_y_reg+num_rows_reg-1))
-                        board_in[col][row] = board_arr[col][row];
-                    else
-                        board_in[col][row] = board_arr[col][row-num_rows_reg];
+            if (frame_clk_rising_edge) begin
+                for (row = y_size - 1; row < y_size; row = row - 1) begin
+                    for (col = 0; col < x_size; col = col + 1) begin
+                        // This is below the dropped line(s), at or above should be shifted appropriately
+                        if (row > (clear_y_reg+num_rows_reg-1))
+                            board_in[col][row] = board_arr[col][row];
+                        else
+                            board_in[col][row] = board_arr[col][row-num_rows_reg];
+                    end
                 end
             end
         end
@@ -181,6 +197,7 @@ begin
     if (Reset) begin
         num_rows_reg <= 5'd0;
         clear_y_reg <= 5'd0;
+        clear_counter <= 5'd0;
         for (col = 0; col < x_size; col = col + 1) begin
             for (row = 0; row < y_size; row = row + 1) begin
                 board_arr[col][row] <= EMPTY;
@@ -188,6 +205,7 @@ begin
         end
     end
     else begin
+        clear_counter <= clear_counter_in;
         board_arr <= board_in;
         state <= next_state;
         if (save_clear_y) begin
