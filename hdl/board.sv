@@ -23,19 +23,126 @@ module board (
     input  logic [19:0] y_rotate_left,
     input  logic [19:0] y_rotate_right,
     input  logic get_new_block,
+    input  logic frame_clk_rising_edge,
     input  block_color block,
     // input  logic [19:0] lines,      // Indiciates which lines to clear
     output block_color current_pixel,  // 10x20 column major board, each square represented by 3 bits
+    output logic BOARD_BUSY,
     output logic [4:0] can_move
 );
 
 block_color board_arr[x_size][y_size];
-logic [9:0] i;
-logic [9:0] j;
-logic [9:0] row;
-logic [9:0] col;
+block_color board_in[x_size][y_size];
+logic [4:0] row;
+logic [4:0] col;
+
+logic can_clear_row;
+logic can_clear_current;
+logic clear_row;
+logic drop_rows;
+logic [4:0] i;
+logic [4:0] j;
+logic [4:0] clear_y;
+logic [4:0] num_rows;
+logic [4:0] clear_y_reg;
+logic [4:0] num_rows_reg;
 
 assign current_pixel = board_arr[x_coord][y_coord];
+
+enum logic [2:0] {
+    PLAY,
+    CLEAR,
+    DROP
+} state, next_state;
+
+// Logic if a line can be cleared in the board
+always_comb
+begin
+    clear_y = 5'd30;
+    num_rows = 5'd0;
+    can_clear_row = 1'b0;
+    for (j = 5'd0; j < y_size; j = j + 5'd1) begin
+        can_clear_current = 1'b1;
+        for (i = 5'd0; i < x_size; i = i + 5'd1) begin
+            if (board_arr[i][j] == EMPTY) begin
+                can_clear_current = 1'b0;
+                break;
+            end
+        end
+        if (can_clear_current == 1'b1) begin
+            clear_y = j;
+            num_rows = num_rows + 5'd1;
+            can_clear_row = 1'b1;
+        end
+    end
+end
+
+logic save_clear_y;
+always_comb
+begin
+    next_state = state;
+    save_clear_y = 1'b0;
+    // Next state transitions
+    unique case (next_state)
+        PLAY: begin
+            if (get_new_block && can_clear_row) begin
+                save_clear_y = 1'b1;
+                next_state = CLEAR;
+            end
+        end
+        CLEAR: begin
+            if (num_rows == 1'b1 && clear_y_reg-num_rows_reg != 5'd0)
+                next_state = DROP;
+            else if (num_rows > 1'b1)
+                next_state = CLEAR;
+            else
+                next_state = PLAY;
+        end
+        DROP: begin
+            next_state = PLAY;
+        end
+        default:
+            next_state = PLAY;
+    endcase
+    
+    BOARD_BUSY = 1'b0;
+    board_in = board_arr;
+    col = 5'd0;
+    row = 5'd0;
+    // Signals based on current state
+    case (state)
+        PLAY: begin
+            if (get_new_block == 1'b0) begin
+                board_in[save_xblock[19:15]][save_yblock[19:15]] = EMPTY;
+                board_in[save_xblock[14:10]][save_yblock[14:10]] = EMPTY;
+                board_in[save_xblock[9:5]][save_yblock[9:5]] = EMPTY;
+                board_in[save_xblock[4:0]][save_yblock[4:0]] = EMPTY;
+            end
+            board_in[x_block[19:15]][y_block[19:15]] = block;
+            board_in[x_block[14:10]][y_block[14:10]] = block;
+            board_in[x_block[9:5]][y_block[9:5]] = block;
+            board_in[x_block[4:0]][y_block[4:0]] = block;
+        end
+        CLEAR: begin
+            BOARD_BUSY = 1'b1;
+            for (col = 5'd0; col < x_size; col = col + 1) begin
+                board_in[col][clear_y] = EMPTY;
+            end
+        end
+        DROP: begin
+            BOARD_BUSY = 1'b1;
+            for (row = y_size - 1; row < y_size; row = row - 1) begin
+                for (col = 0; col < x_size; col = col + 1) begin
+                    // This is below the dropped line(s), at or above should be shifted appropriately
+                    if (row > (clear_y_reg+num_rows_reg-1))
+                        board_in[col][row] = board_arr[col][row];
+                    else
+                        board_in[col][row] = board_arr[col][row-num_rows_reg];
+                end
+            end
+        end
+    endcase
+end
 
 function logic checkBlockMatch(logic [4:0] xcheck, logic [4:0] ycheck);
     return (board_arr[xcheck][ycheck] == EMPTY) || ((xcheck == x_block[19:15] && ycheck == y_block[19:15]) || (xcheck == x_block[14:10] && ycheck == y_block[14:10]) ||
@@ -72,25 +179,22 @@ assign can_move[0] = inBounds(x_move_down, y_move_down) && checkBoardSpaces(x_mo
 always_ff @(posedge Clk) 
 begin
     if (Reset) begin
-        for (row = 0; row < x_size; row = row + 1) begin
-            for (col = 0; col < y_size; col = col + 1) begin
-                board_arr[row][col] <= EMPTY;
+        num_rows_reg <= 5'd0;
+        clear_y_reg <= 5'd0;
+        for (col = 0; col < x_size; col = col + 1) begin
+            for (row = 0; row < y_size; row = row + 1) begin
+                board_arr[col][row] <= EMPTY;
             end
         end
     end
-    // Constantly redraws part of board with current block, even if no movement occurs.
-    // Don't erase old block if a new block is generated
-    if (get_new_block == 1'b0) begin
-        board_arr[save_xblock[19:15]][save_yblock[19:15]] <= EMPTY;
-        board_arr[save_xblock[14:10]][save_yblock[14:10]] <= EMPTY;
-        board_arr[save_xblock[9:5]][save_yblock[9:5]] <= EMPTY;
-        board_arr[save_xblock[4:0]][save_yblock[4:0]] <= EMPTY;
+    else begin
+        board_arr <= board_in;
+        state <= next_state;
+        if (save_clear_y) begin
+            num_rows_reg <= num_rows;
+            clear_y_reg <= clear_y;
+        end
     end
-
-    board_arr[x_block[19:15]][y_block[19:15]] <= block;
-    board_arr[x_block[14:10]][y_block[14:10]] <= block;
-    board_arr[x_block[9:5]][y_block[9:5]] <= block;
-    board_arr[x_block[4:0]][y_block[4:0]] <= block;
 end
 
 endmodule

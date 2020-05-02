@@ -49,6 +49,7 @@ module tetris(input              CLOCK_50,
     
     logic Reset_h, Clk;
     logic [31:0] keycode;
+    logic BOARD_BUSY;
     
     assign Clk = CLOCK_50;
     always_ff @ (posedge Clk) begin
@@ -79,6 +80,7 @@ module tetris(input              CLOCK_50,
     logic [19:0] y_rotate_left;
     logic [19:0] y_rotate_right;
     logic get_new_block;
+    logic frame_clk_rising_edge;
 
     block_color block;
     block_color current_pixel;

@@ -20,6 +20,7 @@ module  block_logic( input         Clk,                // 50 MHz clock
                input [9:0]   DrawX, DrawY,       // Current pixel coordinates
                input [31:0]   keycode,
                input logic [4:0] can_move,
+               input logic BOARD_BUSY,
                output logic  play_area,          // Current coordinates in play area
                output logic [4:0] x_coord,
                output logic [4:0] y_coord,
@@ -38,6 +39,7 @@ module  block_logic( input         Clk,                // 50 MHz clock
                output logic [19:0] y_rotate_left,
                output logic [19:0] y_rotate_right,
                output logic get_new_block,
+               output logic frame_clk_rising_edge,
                output block_color block
               );
     
@@ -61,6 +63,7 @@ parameter [2:0] P_GREEN = 3'd4;
 parameter [2:0] T_MAGENTA = 3'd5;
 parameter [2:0] Z_RED = 3'd6;
 logic [2:0] player_move;
+logic [2:0] cur_block_idx;
 
 // Possible choices to choose from corresponding to index in array
 logic [19:0] x_block_choices [7];
@@ -190,7 +193,7 @@ tetromino_generator block_gen(
 );
 
 // Detect rising edge of frame_clk
-logic frame_clk_delayed, frame_clk_rising_edge;
+logic frame_clk_delayed;
 always_ff @ (posedge Clk)
 begin
   if (Reset) begin
@@ -202,8 +205,9 @@ begin
     block <= block_color_choices[block_idx];
     save_xblock <= x_block_choices[block_idx];
     save_yblock <= y_block_choices[block_idx];
+    cur_block_idx <= block_idx;
   end
-  else begin
+  else if (BOARD_BUSY != 1'b1) begin
     down_counter <= down_counter_in;
     speed_counter <= speed_counter_in;
     if (get_new_block) begin
@@ -213,6 +217,7 @@ begin
       save_xblock <= x_block_choices[block_idx];
       save_yblock <= y_block_choices[block_idx];
       cur_orientation <= NORMAL;
+      cur_block_idx <= block_idx;
     end
     else begin
       save_xblock <= x_block;
