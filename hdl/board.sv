@@ -137,10 +137,11 @@ begin
             if (frame_clk_rising_edge) begin
                 clear_counter_in = clear_counter_in + 1;
             end
-            if (frame_clk_rising_edge && clear_counter == clear_frames) begin
+            if (frame_clk_rising_edge && clear_counter == clear_frames && can_clear_row) begin
                 for (col = 5'd0; col < x_size; col = col + 1) begin
                     board_in[col][clear_y] = EMPTY;
                 end
+                clear_counter_in = 0;
             end
         end
         DROP: begin
@@ -149,7 +150,7 @@ begin
                 for (row = y_size - 1; row < y_size; row = row - 1) begin
                     for (col = 0; col < x_size; col = col + 1) begin
                         // This is below the dropped line(s), at or above should be shifted appropriately
-                        if (row > (clear_y_reg+num_rows_reg-1))
+                        if (row > (clear_y_reg))
                             board_in[col][row] = board_arr[col][row];
                         else
                             board_in[col][row] = board_arr[col][row-num_rows_reg];

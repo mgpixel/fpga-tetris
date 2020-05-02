@@ -57,7 +57,7 @@ parameter [9:0] scorex_max = 10'd17;
 parameter [9:0] scorey_min = 10'd10;
 parameter [9:0] scorey_max = 10'd25;
 parameter [5:0] level_speed = 6'd60;
-parameter [3:0] s_speed = 4'd6;
+parameter [3:0] s_speed = 4'd2;
 
 // Indices corresponding to starting coordinates of block and color
 parameter [2:0] I_CYAN = 3'd0;
@@ -68,19 +68,21 @@ parameter [2:0] P_GREEN = 3'd4;
 parameter [2:0] T_MAGENTA = 3'd5;
 parameter [2:0] Z_RED = 3'd6;
 logic [2:0] player_move;
-logic [2:0] cur_block_idx;
 
 // Possible choices to choose from corresponding to index in array
 logic [19:0] x_block_choices [7];
 logic [19:0] y_block_choices [7];
 
 block_color block_color_choices [7];
+block_color block_in;
 logic [3:0] i;
 
 logic [7:0] A, S, D, J, K, L;
 logic [5:0] down_counter;
 logic [5:0] down_counter_in;
 logic [2:0] block_idx;
+logic [2:0] cur_block_idx;
+logic [2:0] block_idx_in;
 
 logic [19:0] move_x;
 logic [19:0] move_y;
@@ -197,6 +199,19 @@ tetromino_generator block_gen(
   .*
 );
 
+// When a new block is gotten, set the appropriate inputs for registers
+function void setNewBlockInputs();
+  move_x = x_block_choices[block_idx];
+  move_y = y_block_choices[block_idx];
+  save_xblock_in = x_block_choices[block_idx];
+  save_yblock_in = y_block_choices[block_idx];
+  block_in = block_color_choices[block_idx];
+  block_idx_in = block_idx;
+  new_orientation = NORMAL;
+  down_counter_in = 0;
+  speed_counter_in = 0;
+endfunction
+
 // Detect rising edge of frame_clk
 logic frame_clk_delayed;
 always_ff @ (posedge Clk)
@@ -212,25 +227,16 @@ begin
     save_yblock <= y_block_choices[block_idx];
     cur_block_idx <= block_idx;
   end
-  else if (BOARD_BUSY != 1'b1) begin
+  else begin
+    x_block <= move_x;
+    y_block <= move_y;
+    save_xblock <= save_xblock_in;
+    save_yblock <= save_yblock_in;
+    block <= block_in;
+    cur_block_idx <= block_idx_in;
+    cur_orientation <= new_orientation;
     down_counter <= down_counter_in;
     speed_counter <= speed_counter_in;
-    if (get_new_block) begin
-      x_block <= x_block_choices[block_idx];
-      y_block <= y_block_choices[block_idx];
-      block <= block_color_choices[block_idx];
-      save_xblock <= x_block_choices[block_idx];
-      save_yblock <= y_block_choices[block_idx];
-      cur_orientation <= NORMAL;
-      cur_block_idx <= block_idx;
-    end
-    else begin
-      save_xblock <= x_block;
-      save_yblock <= y_block;
-      x_block <= move_x;
-      y_block <= move_y;
-      cur_orientation <= new_orientation;
-    end
   end
   frame_clk_delayed <= frame_clk;
   frame_clk_rising_edge <= (frame_clk == 1'b1) && (frame_clk_delayed == 1'b0);
@@ -254,24 +260,29 @@ end
 always_comb
 begin
   down_counter_in = down_counter;
+  speed_counter_in = speed_counter;
   move_x = x_block;
   move_y = y_block;
+  save_xblock_in = x_block;
+  save_yblock_in = y_block;
+  block_in = block;
   new_orientation = cur_orientation;
   get_new_block = 1'b0;
   player_move = 3'd0;
-  speed_counter_in = speed_counter;
+  block_idx_in = cur_block_idx;
 
-  if (Reset) ;
+  if (Reset || BOARD_BUSY == 1'b1) /* do nothing */ ;
   // Update position and motion only at rising edge of frame clock
-  else if (frame_clk_rising_edge && (down_counter == level_speed)) begin
+  else if (frame_clk_rising_edge && (down_counter >= level_speed)) begin
     if (down_valid) begin
       player_move = 3'd2;
       move_y = y_move_down;
+      down_counter_in = 6'd0;
     end
     // Reached the end, spawn a new block
     else begin
-      player_move = 3'd1;
-      get_new_block = 1'b1; 
+      get_new_block = 1'b1;
+      setNewBlockInputs();
     end
   end
   else if (frame_clk_rising_edge) begin
@@ -321,25 +332,22 @@ begin
       move_x = x_move_left;
       move_y = y_move_left;
     end
-    else if (speed_down) begin
+    else if (speed_down == 1'b1) begin
+      down_counter_in = 6'd0;
       speed_counter_in = speed_counter_in + 4'd1;
-      if (speed_counter_in > s_speed) begin
-        down_counter_in = 6'd0;
+      if (speed_counter_in >= s_speed) begin
         speed_counter_in = 4'd0;
         if (down_valid) begin
           move_y = y_move_down;
         end
         else begin
           get_new_block = 1'b1;
+          setNewBlockInputs();
         end
-      end 
+      end
     end
-  end
-  // Update counters on the frame clock to be synced with game
-  if (frame_clk_rising_edge) begin
-    down_counter_in = down_counter_in + 6'd1;
-    if (down_counter_in > level_speed)
-      down_counter_in = 6'd1;
+    else
+      down_counter_in = down_counter_in + 6'd1;
   end
 end
 
