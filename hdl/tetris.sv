@@ -50,7 +50,7 @@ module tetris(input              CLOCK_50,
     logic Reset_h, Clk;
     logic [31:0] keycode;
     logic BOARD_BUSY;
-    
+
     assign Clk = CLOCK_50;
     always_ff @ (posedge Clk) begin
         score_digits_in <= score_digits;
@@ -71,6 +71,7 @@ module tetris(input              CLOCK_50,
     logic [19:0] save_yblock;
     logic [23:0] score_digits;
     logic [23:0] score_digits_in;
+    logic [9:0] xdraw_counter, ydraw_counter;
     
     // Possible moves that board checks are valid to not go out of bounds accidentally
     logic [19:0] x_move_left;

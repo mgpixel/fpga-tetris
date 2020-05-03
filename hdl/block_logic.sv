@@ -21,6 +21,7 @@ module  block_logic( input         Clk,                // 50 MHz clock
                input [31:0]   keycode,
                input logic [4:0] can_move,
                input logic BOARD_BUSY,
+               input VGA_CLK,
                output logic play_area,          // Current coordinates in play area
                output logic score_area,
                output logic [4:0] x_coord,
@@ -39,6 +40,8 @@ module  block_logic( input         Clk,                // 50 MHz clock
                output logic [19:0] y_move_down,
                output logic [19:0] y_rotate_left,
                output logic [19:0] y_rotate_right,
+               output logic [9:0] xdraw_counter,
+               output logic [9:0] ydraw_counter,
                output logic get_new_block,
                output logic frame_clk_rising_edge,
                output block_color block
@@ -67,6 +70,9 @@ parameter [2:0] O_YELLOW = 3'd3;
 parameter [2:0] P_GREEN = 3'd4;
 parameter [2:0] T_MAGENTA = 3'd5;
 parameter [2:0] Z_RED = 3'd6;
+
+parameter [9:0] HPLAY_TOTAL = 10'd19;
+parameter [9:0] VPLAY_TOTAL = 10'd19;
 logic [2:0] player_move;
 
 // Possible choices to choose from corresponding to index in array
@@ -84,14 +90,12 @@ logic [7:0] A, S, D, J, K, L;
 logic [5:0] down_counter;
 logic [5:0] down_counter_in;
 logic [2:0] block_idx;
-logic [2:0] cur_block_idx;
-logic [2:0] block_idx_in;
-logic [2:0] switch_block_idx;
+logic [2:0] cur_block_idx, block_idx_in, switch_block_idx;
 
-logic [19:0] move_x;
-logic [19:0] move_y;
-logic [19:0] save_xblock_in;
-logic [19:0] save_yblock_in;
+logic [19:0] move_x, move_y;
+logic [19:0] save_xblock_in, save_yblock_in;
+
+logic [9:0] xdraw_counter_in, ydraw_counter_in;
 
 logic left_valid;
 logic right_valid;
@@ -269,6 +273,17 @@ begin
   end
 end
 
+always_ff @(posedge VGA_CLK) begin
+  if (Reset) begin
+    xdraw_counter <= 10'd0;
+    ydraw_counter <= 10'd0;
+  end
+  else begin
+    xdraw_counter <= xdraw_counter_in;
+    ydraw_counter <= ydraw_counter_in;
+  end
+end
+
 always_comb
 begin
   down_counter_in = down_counter;
@@ -380,6 +395,8 @@ always_comb begin
   score_area = 1'b0;
   x_coord = 5'd0;
   y_coord = 5'd0;
+  ydraw_counter_in = ydraw_counter;
+  xdraw_counter_in = xdraw_counter;
 
   // Determines that board.sv should output current pixel rather than the background
   if (DrawX <= playx_max && DrawX >= playx_min && DrawY >= playy_min && DrawY <= playy_max) begin
@@ -387,6 +404,27 @@ always_comb begin
     x_coord = (DrawX - playx_min) / 20;
     y_coord = (DrawY - playy_min) / 20;
     play_area = 1'b1;
+
+    // When in play area, x is always updated at next clock cycle
+    xdraw_counter_in = xdraw_counter + 10'd1;
+    if (xdraw_counter >= HPLAY_TOTAL)
+      xdraw_counter_in = 10'd0;
+    else
+      xdraw_counter_in = xdraw_counter + 10'd1;
+
+    // Only update y counter when DrawX is at edge of play area
+    if (DrawX == playx_max) begin
+      xdraw_counter_in = 10'd0;
+      ydraw_counter_in = ydraw_counter_in + 10'd1;
+      if (ydraw_counter >= VPLAY_TOTAL)
+        ydraw_counter_in = 10'd0;
+      else
+        ydraw_counter_in = ydraw_counter + 10'd1;
+    end
+    if (DrawX == playx_min && DrawY == playy_min) begin
+      xdraw_counter_in = 10'd1;
+      ydraw_counter_in = 10'd0;
+    end
   end
   else if (DrawX <= scorex_max && DrawX >= scorex_min && DrawY >= scorey_min && DrawY <= scorey_max) begin
     score_area = 1'b1;
