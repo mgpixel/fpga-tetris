@@ -25,8 +25,7 @@ module board (
     input  logic get_new_block,
     input  logic frame_clk_rising_edge,
     input  block_color block,
-    // input  logic [19:0] lines,      // Indiciates which lines to clear
-    output block_color current_pixel,  // 10x20 column major board, each square represented by 3 bits
+    output block_color current_pixel,  // outputs current block color
     output logic BOARD_BUSY,
     output logic [23:0] score_digits,
     output logic [4:0] can_move
@@ -52,6 +51,7 @@ logic [4:0] num_rows_reg;
 logic [2:0] clear_frames = 3'd3;
 logic [2:0] clear_counter;
 logic [2:0] clear_counter_in;
+logic [10:0] total_num_rows;
 
 enum logic [2:0] {
     PLAY,
@@ -212,6 +212,7 @@ begin
         num_rows_reg <= 5'd0;
         clear_y_reg <= 5'd0;
         clear_counter <= 5'd0;
+        total_num_rows <= 10'd0;
         for (col = 0; col < x_size; col = col + 1) begin
             for (row = 0; row < y_size; row = row + 1) begin
                 board_arr[col][row] <= EMPTY;
@@ -225,6 +226,7 @@ begin
         if (save_clear_y) begin
             num_rows_reg <= num_rows;
             clear_y_reg <= clear_y;
+            total_num_rows <= total_num_rows + num_rows;
         end
     end
 end

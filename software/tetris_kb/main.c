@@ -51,9 +51,10 @@ int main(void)
 	static alt_u16 ctl_reg = 0;
 	static alt_u16 no_device = 0;
 	alt_u16 fs_device = 0;
-	int keycode = 0;
-	int keycode2 = 0;
-	int keycode3 = 0;
+	int keycodes[3];
+	int k = 0, h = 0;
+	int key_bits = 0;
+	int cur_keycode = 0;
 	alt_u8 toggle = 0;
 	alt_u8 data_size;
 	alt_u8 hot_plug_count;
@@ -551,12 +552,71 @@ int main(void)
 
 		// The first two keycodes are stored in 0x051E. Other keycodes are in 
 		// subsequent addresses.
-		keycode = UsbRead(0x051e);
-		keycode2 = UsbRead(0x0520);
-		keycode3 = UsbRead(0x0522);
-		printf("\nfirst four keycode values are %04x %04x %04x\n", keycode, keycode2, keycode3);
+		keycodes[0] = UsbRead(0x051e);
+		keycodes[1] = UsbRead(0x0520);
+		keycodes[2] = UsbRead(0x0522);
+		key_bits = 0;
+		for (h = 0; h < 2; h++) {
+			for (k = 0; k < 3; k++) {
+				cur_keycode = (keycodes[k] >> 8*h) & 0xff;
+				switch (cur_keycode) {
+					// A
+					case 0x04:
+						key_bits |= 1;
+						break;
+					// S
+					case 0x16:
+						key_bits |= 2;
+						break;
+					// D
+					case 0x07:
+						key_bits |= 4;
+						break;
+					// F
+					case 0x09:
+						key_bits |= 8;
+						break;
+					// G
+					case 0x0A:
+						key_bits |= 16;
+						break;
+					// H
+					case 0x0B:
+						key_bits |= 32;
+						break;
+					// COMMA
+					case 0x36:
+						key_bits |= 64;
+						break;
+					// PERIOD
+					case 0x37:
+						key_bits |= 128;
+						break;
+					// BACKSLASH
+					case 0x38:
+						key_bits |= 256;
+						break;
+					// 1
+					case 0x59:
+						key_bits |= 512;
+						break;
+					// 2
+					case 0x5A:
+						key_bits |= 1024;
+						break;
+					// 3
+					case 0x5B:
+						key_bits |= 2048;
+						break;
+					default:
+						break;
+				}
+			}
+		}
+		printf("\nFirst two keycode value %04x\n", keycodes[0]);
 		// Send up to 4 keycodes pressed to hardware via PIO.
-		*(keycode_base) = (keycode & 0xff) | (keycode & 0xff00) | ((keycode2 & 0xff) << 16) | ((keycode2 & 0xff00) << 16);
+		*(keycode_base) = (key_bits & 0xFFFF);
+		// printf("Key bits %x\n", key_bits & 0xFFFF);
 
 		usleep(200);//usleep(5000);
 		usb_ctl_val = UsbRead(ctl_reg);

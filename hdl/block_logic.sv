@@ -1,5 +1,5 @@
 //-------------------------------------------------------------------------
-//    Ball.sv                                                            --
+//    (Originally) Ball.sv                                               --
 //    Viral Mehta                                                        --
 //    Spring 2005                                                        --
 //                                                                       --
@@ -12,6 +12,13 @@
 //    For use with ECE 385 Lab 8                                         --
 //    UIUC ECE Department                                                --
 //-------------------------------------------------------------------------
+//    block_logic.sv
+//    Jiawei Huang
+//    Marcos Garcia
+//    Spring 2020
+//
+//    Holds most of the game logic, sending signals as needed to the tetris
+//    board and logic for drawing onto the screen
 
 
 module  block_logic( input         Clk,                // 50 MHz clock
@@ -19,8 +26,11 @@ module  block_logic( input         Clk,                // 50 MHz clock
                              frame_clk,          // The clock indicating a new frame (~60Hz)
                input [9:0]   DrawX, DrawY,       // Current pixel coordinates
                input [31:0]   keycode,
+               input logic [9:0] playx_max, playx_min, playy_max, playy_min,
+               input logic [9:0] scorex_min, scorex_max, scorey_min, scorey_max,
                input logic [4:0] can_move,
                input logic BOARD_BUSY,
+               input logic [1:0] player_num,
                input VGA_CLK,
                output logic play_area,          // Current coordinates in play area
                output logic score_area,
@@ -51,14 +61,6 @@ parameter [9:0] x_min = 10'd0;       // Leftmost point on the X axis
 parameter [9:0] x_max = 10'd639;     // Rightmost point on the X axis
 parameter [9:0] y_min = 10'd0;       // Topmost point on the Y axis
 parameter [9:0] y_max = 10'd479;     // Bottommost point on the Y axis
-parameter [9:0] playx_min = 10'd220;
-parameter [9:0] playx_max = 10'd419;
-parameter [9:0] playy_min = 10'd40;
-parameter [9:0] playy_max = 10'd439;
-parameter [9:0] scorex_min = 10'd296;
-parameter [9:0] scorex_max = 10'd343;
-parameter [9:0] scorey_min = 10'd10;
-parameter [9:0] scorey_max = 10'd25;
 parameter [5:0] level_speed = 6'd60;
 parameter [3:0] s_speed = 4'd2;
 
@@ -86,7 +88,7 @@ logic switch_block;
 logic is_block_switched;
 logic [3:0] i;
 
-logic [7:0] A, S, D, J, K, L;
+logic [7:0] A, S, D, F, G, H, COMMA_KEY, PERIOD_KEY, BACKSLASH_KEY, ONE_KEY, TWO_KEY, THREE_KEY;
 logic [5:0] down_counter;
 logic [5:0] down_counter_in;
 logic [2:0] block_idx;
@@ -107,9 +109,8 @@ orientation cur_orientation=NORMAL;
 orientation new_orientation;
 
 logic move_left, move_right, speed_down, rotate_left, rotate_right, hold_block;
+logic old_moveleft, old_moveright, old_rotleft, old_rotright;
 logic a_released, s_released, d_released, j_released, k_released, l_released;
-logic [7:0] key, key2, key3, key4;
-logic [7:0] old_key, old_key2, old_key3, old_key4;
 
 // Creating possible moves tetromino may move linearly
 assign x_move_left = {x_block[19:15]-5'd1, x_block[14:10]-5'd1, x_block[9:5]-5'd1, x_block[4:0]-5'd1};
@@ -158,28 +159,44 @@ assign block_color_choices[T_MAGENTA] = MAGENTA;
 assign block_color_choices[Z_RED] = RED;
 
 // Hex values corresponding to keys pressed from keyboard
-assign A = 8'h04;
-assign S = 8'h16;
-assign D = 8'h07;
-assign J = 8'h0d;
-assign K = 8'h0e;
-assign L = 8'h0f;
+assign A = keycode[0];
+assign S = keycode[1];
+assign D = keycode[2];
+assign F = keycode[3];
+assign G = keycode[4];
+assign H = keycode[5];
 
-// Detect keycodes by comparing every keycode read
-assign move_left = (key == A) | (key2 == A) | (key3 == A) | (key4 == A);
-assign move_right = (key == D) | (key2 == D) | (key3 == D) | (key4 == D);
-assign speed_down = (key == S) | (key2 == S) | (key3 == S) | (key4 == S);
-assign rotate_left = (key == J) | (key2 == J) | (key3 == J) | (key4 == J);
-assign rotate_right = (key == L) | (key2 == L) | (key3 == L) | (key4 == L);
-assign hold_block = (key == K) | (key2 == K) | (key3 == K) | (key4 == K);
+assign COMMA_KEY = keycode[6];
+assign PERIOD_KEY = keycode[7];
+assign BACKSLASH_KEY = keycode[8];
+assign ONE_KEY = keycode[9];
+assign TWO_KEY = keycode[10]; 
+assign THREE_KEY = keycode[11];
+
+logic [7:0] kleft, kright, kdown, krotleft, krotright, khold;
+
+assign kleft = player_num == 2'b1 ? A : COMMA_KEY;
+assign kright = player_num == 2'b1 ? D : BACKSLASH_KEY;
+assign kdown = player_num == 2'b1 ? S : PERIOD_KEY;
+assign krotleft = player_num == 2'b1 ? F : ONE_KEY;
+assign krotright = player_num == 2'b1 ? G : THREE_KEY;
+assign khold = player_num == 2'b1 ? H : TWO_KEY;
+
+// Detect keycodes by checking the bits of keycode data passed in
+assign move_left = kleft != 8'd0;
+assign move_right = kright != 8'd0;
+assign speed_down = kdown != 8'd0;
+assign rotate_left = krotleft != 8'd0;
+assign rotate_right = krotright != 8'd0;
+assign hold_block = khold != 8'd0;
 
 logic left_held, right_held, rotate_left_held, rotate_right_held;
 logic [3:0] speed_counter, speed_counter_in;
 
-assign left_held = (old_key == A) | (old_key2 == A) | (old_key3 == A) | (old_key4 == A);
-assign right_held = (old_key == D) | (old_key2 == D) | (old_key3 == D) | (old_key4 == D);
-assign rotate_left_held = (old_key == J) | (old_key2 == J) | (old_key3 == J) | (old_key4 == J);
-assign rotate_right_held = (old_key == L) | (old_key2 == L) | (old_key3 == L) | (old_key4 == L);
+assign left_held = (old_moveleft == move_left);
+assign right_held = (old_moveright == move_right);
+assign rotate_left_held = (old_rotleft == rotate_left);
+assign rotate_right_held = (old_rotright == rotate_right);
 
 rotate_blocks rotater_left(
   .rotate_left(1'b1),
@@ -261,15 +278,10 @@ end
 always_ff @(posedge Clk)
 begin
   if (frame_clk_rising_edge) begin
-    key <= keycode[7:0];
-    key2 <= keycode[15:8];
-    key3 <= keycode[23:16];
-    key4 <= keycode[31:24];
-
-    old_key <= key;
-    old_key2 <= key2;
-    old_key3 <= key3;
-    old_key4 <= key4;
+    old_moveleft <= move_left;
+    old_moveright <= move_right;
+    old_rotleft <= rotate_left;
+    old_rotright <= rotate_right;
   end
 end
 
@@ -300,6 +312,9 @@ begin
   switch_block = 1'b0;
 
   if (Reset || BOARD_BUSY == 1'b1) /* do nothing */ ;
+  else if (block_idx == 3'd7) begin /* happens once at startup I think */
+    get_new_block = 1'b1;
+  end
   // Update position and motion only at rising edge of frame clock
   else if (frame_clk_rising_edge && (down_counter >= level_speed)) begin
     if (down_valid) begin
@@ -311,6 +326,7 @@ begin
     else begin
       get_new_block = 1'b1;
       setNewBlockInputs(block_idx);
+      player_move = cur_block_idx + 3'd1;
     end
   end
   else if (frame_clk_rising_edge) begin
@@ -361,15 +377,18 @@ begin
       move_y = y_move_left;
     end
     else if (speed_down == 1'b1) begin
-      down_counter_in = 6'd0;
       speed_counter_in = speed_counter_in + 4'd1;
-      if (speed_counter_in >= s_speed) begin
+      if (speed_counter >= s_speed) begin
         speed_counter_in = 4'd0;
-        if (down_valid) begin
+        // Don't have it speed down at top for when a new block spawns
+        if (down_valid && y_block[19:15] != 5'd0 && y_block[14:10] != 5'd0 &&
+            y_block[9:5] != 5'd0 && y_block[4:0] != 5'd0) begin
+          down_counter_in = 6'd0;
           move_y = y_move_down;
         end
-        else begin
+        else if (down_valid == 1'b0) begin
           get_new_block = 1'b1;
+          player_move = cur_block_idx + 1'd1;
           setNewBlockInputs(block_idx);
         end
       end

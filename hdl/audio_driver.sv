@@ -3,7 +3,7 @@ module audio_driver(
     input  logic [15:0] DATA,                                       // Sound data from NIOS-II
     input  logic AUD_BCLK, AUD_ADCDAT, AUC_DACLRCK, AUD_ADCLRCK,    // WM8731 Input Signals
     output logic AUD_MCLK, AUD_DACDAT, I2C_SDAT, I2C_SCLK,          // WM8731 Output Signals
-    output logic NEXT_SAMPLE;                                       // Signal to NIOS-II to move on to next 16 bits
+    output logic NEXT_SAMPLE                                        // Signal to NIOS-II to move on to next 16 bits
 );
 
 enum logic [1:0] {RESET, INIT_, WRITE, NEXT} state, next_state;
@@ -14,7 +14,7 @@ logic [31:0] ADCDATA; // unused signal
 
 
 audio_interface audio_intf(
-    .clk(Clk), .LDATA(DATA), .RDATA(DATA), *
+    .clk(Clk), .LDATA(DATA), .RDATA(DATA), .*
 );
 
 always_ff @ (posedge Clk)
@@ -28,6 +28,7 @@ end
 always_comb
 begin
     next_state = state;
+    NEXT_SAMPLE = 1'b0;
     case (state)
         RESET:
         begin
@@ -40,8 +41,7 @@ begin
         end
         WRITE:
         begin
-            NEXT_SAMPLE = 1'b0;
-            if (data_over):
+            if (data_over)
                 next_state = NEXT;
         end
         NEXT:
@@ -55,3 +55,5 @@ begin
         end
     endcase
 end
+
+endmodule
