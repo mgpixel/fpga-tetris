@@ -27,6 +27,7 @@ module board (
     input  block_color block,
     output block_color current_pixel,  // outputs current block color
     output logic BOARD_BUSY,
+    output logic [5:0] level_speed,
     output logic [23:0] score_digits,
     output logic [4:0] can_move
 );
@@ -52,6 +53,28 @@ logic [2:0] clear_frames = 3'd3;
 logic [2:0] clear_counter;
 logic [2:0] clear_counter_in;
 logic [10:0] total_num_rows;
+logic [5:0] level_speed_in;
+
+// Basic level speed logic
+always_comb
+begin
+    level_speed_in = level_speed;
+    if (total_num_rows < 4)
+        level_speed_in = 6'd60;
+    else if (total_num_rows < 10)
+        level_speed_in = 6'd30;
+    else if (total_num_rows < 20)
+        level_speed_in = 6'd25;
+    else if (total_num_rows < 30)
+        level_speed_in = 6'd20;
+    else if (total_num_rows < 40)
+        level_speed_in = 6'd15;
+    else if (total_num_rows < 50)
+        level_speed_in = 6'd10;
+    // Rip
+    else
+        level_speed_in = 6'd5;
+end
 
 enum logic [2:0] {
     PLAY,
@@ -213,6 +236,7 @@ begin
         clear_y_reg <= 5'd0;
         clear_counter <= 5'd0;
         total_num_rows <= 10'd0;
+        level_speed <= 6'd60;
         for (col = 0; col < x_size; col = col + 1) begin
             for (row = 0; row < y_size; row = row + 1) begin
                 board_arr[col][row] <= EMPTY;
@@ -223,6 +247,7 @@ begin
         clear_counter <= clear_counter_in;
         board_arr <= board_in;
         state <= next_state;
+        level_speed <= level_speed_in;
         if (save_clear_y) begin
             num_rows_reg <= num_rows;
             clear_y_reg <= clear_y;

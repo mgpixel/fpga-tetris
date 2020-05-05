@@ -7,8 +7,8 @@ typedef enum logic [2:0] {
   ORANGE,
   YELLOW,
   GREEN,
-  RED,
-  MAGENTA
+  MAGENTA,
+  RED
 } block_color;
 
 typedef enum logic [1:0] {

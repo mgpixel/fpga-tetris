@@ -578,11 +578,11 @@ int main(void)
 						break;
 					// G
 					case 0x0A:
-						key_bits |= 16;
+						key_bits |= 32;
 						break;
 					// H
 					case 0x0B:
-						key_bits |= 32;
+						key_bits |= 16;
 						break;
 					// COMMA
 					case 0x36:
@@ -608,6 +608,8 @@ int main(void)
 					case 0x5B:
 						key_bits |= 2048;
 						break;
+					case 0x2C:
+						key_bits |= 4096;
 					default:
 						break;
 				}

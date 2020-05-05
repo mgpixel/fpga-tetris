@@ -53,7 +53,7 @@ begin
       end
     end
     fair_counter_in = fair_counter_in + 3'd1;
-    if (fair_counter_in == 3'd7)
+    if (fair_counter == 3'd6)
       fair_counter_in = 3'd0;
   end
 end

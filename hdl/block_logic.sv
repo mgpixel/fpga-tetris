@@ -31,6 +31,7 @@ module  block_logic( input         Clk,                // 50 MHz clock
                input logic [4:0] can_move,
                input logic BOARD_BUSY,
                input logic [1:0] player_num,
+               input logic [5:0] level_speed,
                input VGA_CLK,
                output logic play_area,          // Current coordinates in play area
                output logic score_area,
@@ -54,6 +55,8 @@ module  block_logic( input         Clk,                // 50 MHz clock
                output logic [9:0] ydraw_counter,
                output logic get_new_block,
                output logic frame_clk_rising_edge,
+               output logic [2:0] block_idx,
+               output block_color held_block,
                output block_color block
               );
     
@@ -61,8 +64,7 @@ parameter [9:0] x_min = 10'd0;       // Leftmost point on the X axis
 parameter [9:0] x_max = 10'd639;     // Rightmost point on the X axis
 parameter [9:0] y_min = 10'd0;       // Topmost point on the Y axis
 parameter [9:0] y_max = 10'd479;     // Bottommost point on the Y axis
-parameter [5:0] level_speed = 6'd60;
-parameter [3:0] s_speed = 4'd2;
+parameter [3:0] s_speed = 4'd1;
 
 // Indices corresponding to starting coordinates of block and color
 parameter [2:0] I_CYAN = 3'd0;
@@ -83,15 +85,14 @@ logic [19:0] y_block_choices [7];
 
 block_color block_color_choices [7];
 block_color block_in;
-block_color held_block = EMPTY;
 logic switch_block;
 logic is_block_switched;
+logic replace_block;
 logic [3:0] i;
 
 logic [7:0] A, S, D, F, G, H, COMMA_KEY, PERIOD_KEY, BACKSLASH_KEY, ONE_KEY, TWO_KEY, THREE_KEY;
 logic [5:0] down_counter;
 logic [5:0] down_counter_in;
-logic [2:0] block_idx;
 logic [2:0] cur_block_idx, block_idx_in, switch_block_idx;
 
 logic [19:0] move_x, move_y;
@@ -217,7 +218,7 @@ rotate_blocks rotater_right(
 );
 
 tetromino_generator block_gen(
-  .new_block(get_new_block),
+  .new_block(get_new_block | replace_block),
   .new_move(player_move),
   .block_idx(block_idx),
   .*
@@ -310,11 +311,9 @@ begin
   player_move = 3'd0;
   block_idx_in = cur_block_idx;
   switch_block = 1'b0;
+  replace_block = 1'b0;
 
   if (Reset || BOARD_BUSY == 1'b1) /* do nothing */ ;
-  else if (block_idx == 3'd7) begin /* happens once at startup I think */
-    get_new_block = 1'b1;
-  end
   // Update position and motion only at rising edge of frame clock
   else if (frame_clk_rising_edge && (down_counter >= level_speed)) begin
     if (down_valid) begin
@@ -324,8 +323,8 @@ begin
     end
     // Reached the end, spawn a new block
     else begin
-      get_new_block = 1'b1;
       setNewBlockInputs(block_idx);
+      get_new_block = 1'b1;
       player_move = cur_block_idx + 3'd1;
     end
   end
@@ -378,6 +377,7 @@ begin
     end
     else if (speed_down == 1'b1) begin
       speed_counter_in = speed_counter_in + 4'd1;
+      down_counter_in = down_counter + 6'd1;
       if (speed_counter >= s_speed) begin
         speed_counter_in = 4'd0;
         // Don't have it speed down at top for when a new block spawns
@@ -387,9 +387,9 @@ begin
           move_y = y_move_down;
         end
         else if (down_valid == 1'b0) begin
+          setNewBlockInputs(block_idx);
           get_new_block = 1'b1;
           player_move = cur_block_idx + 1'd1;
-          setNewBlockInputs(block_idx);
         end
       end
     end
@@ -398,14 +398,16 @@ begin
       if (held_block != EMPTY) begin
         setNewBlockInputs(switch_block_idx);
       end
-      else
+      else begin
         setNewBlockInputs(block_idx);
+        replace_block = 1'b1;
+      end
       // Setting these back for board.sv to erase data there correctly
       save_xblock_in = x_block;
       save_yblock_in = y_block;
     end
     else
-      down_counter_in = down_counter_in + 6'd1;
+      down_counter_in = down_counter + 6'd1;
   end
 end
 
@@ -423,16 +425,20 @@ always_comb begin
     x_coord = (DrawX - playx_min) / 20;
     y_coord = (DrawY - playy_min) / 20;
     play_area = 1'b1;
-
-    // When in play area, x is always updated at next clock cycle
+  end
+  else if (DrawX <= scorex_max && DrawX >= scorex_min && DrawY >= scorey_min && DrawY <= scorey_max) begin
+    score_area = 1'b1;
+  end
+  // When in specific area, x is always updated at next clock cycle
+  if (DrawX >= 10'd20 && DrawX <= 10'd639 && DrawY >= playy_min && DrawY <= playy_max) begin
     xdraw_counter_in = xdraw_counter + 10'd1;
     if (xdraw_counter >= HPLAY_TOTAL)
       xdraw_counter_in = 10'd0;
     else
       xdraw_counter_in = xdraw_counter + 10'd1;
 
-    // Only update y counter when DrawX is at edge of play area
-    if (DrawX == playx_max) begin
+    // Only update y counter when DrawX is at edge of specified area
+    if (DrawX == 10'd639) begin
       xdraw_counter_in = 10'd0;
       ydraw_counter_in = ydraw_counter_in + 10'd1;
       if (ydraw_counter >= VPLAY_TOTAL)
@@ -444,9 +450,6 @@ always_comb begin
       xdraw_counter_in = 10'd1;
       ydraw_counter_in = 10'd0;
     end
-  end
-  else if (DrawX <= scorex_max && DrawX >= scorex_min && DrawY >= scorey_min && DrawY <= scorey_max) begin
-    score_area = 1'b1;
   end
 end
 

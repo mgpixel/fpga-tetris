@@ -52,6 +52,9 @@ module tetris(input              CLOCK_50,
     
     logic Reset_h, Clk;
     logic [31:0] keycode;
+    logic space_rst;
+
+    assign space_rst = keycode[12] != 0;
     
     logic [1:0] hpi_addr;
     logic [15:0] hpi_data_in, hpi_data_out;
@@ -64,12 +67,13 @@ module tetris(input              CLOCK_50,
     logic [9:0] xdraw_counter1, ydraw_counter1, xdraw_counter2, ydraw_counter2;
     logic play_area1, play_area2;
     logic score_area1, score_area2;
+    logic [5:0] level_speed1, level_speed2;
 
     assign Clk = CLOCK_50;
     always_ff @ (posedge Clk) begin
         score_digits_in1 <= score_digits1;
         score_digits_in2 <= score_digits2;
-        Reset_h <= ~(KEY[0]);        // The push buttons are active low
+        Reset_h <= ~(KEY[0]) | space_rst;        // The push buttons are active low
     end
 
     // Player 1
@@ -94,6 +98,7 @@ module tetris(input              CLOCK_50,
     logic BOARD_BUSY1;
     block_color block1;
     block_color current_pixel1;
+    block_color held_block1;
 
     // Player 2
     logic [4:0] can_move2;
@@ -117,6 +122,7 @@ module tetris(input              CLOCK_50,
     logic BOARD_BUSY2;
     block_color block2;
     block_color current_pixel2;
+    block_color held_block2;
 
     logic frame_clk_rising_edge;
     logic frame_clk_dummy;
@@ -129,14 +135,15 @@ module tetris(input              CLOCK_50,
     logic [9:0] holdx_min1, holdx_max1, holdx_min2, holdx_max2;
     logic [9:0] nexty_min, nexty_max;
     logic [9:0] nextx_min1, nextx_max1, nextx_min2, nextx_max2;
+    logic [2:0] block_idx1, block_idx2;
 
     assign playy_min = 10'd40;
     assign playy_max = 10'd439;
     assign scorey_min = 10'd15;
     assign scorey_max = 10'd30;
 
-    assign holdy_min = 10'd40;
-    assign holdy_max = 10'd55;
+    assign holdy_min = 10'd120;
+    assign holdy_max = 10'd135;
     assign holdx_min1 = 10'd260;
     assign holdx_max1 = 10'd291;
     assign holdx_min2 = 10'd580;
@@ -233,6 +240,7 @@ module tetris(input              CLOCK_50,
         .BOARD_BUSY(BOARD_BUSY1),
         .current_pixel(current_pixel1),
         .score_digits(score_digits1),
+        .level_speed(level_speed1),
         .*);
 
     board game_board2(.Reset(Reset_h),
@@ -258,6 +266,7 @@ module tetris(input              CLOCK_50,
         .BOARD_BUSY(BOARD_BUSY2),
         .current_pixel(current_pixel2),
         .score_digits(score_digits2),
+        .level_speed(level_speed2),
         .*);
     
     // Holds game logic for blocks in the game
@@ -292,6 +301,9 @@ module tetris(input              CLOCK_50,
         .block(block1),
         .BOARD_BUSY(BOARD_BUSY1),
         .player_num(2'd1),
+        .level_speed(level_speed1),
+        .block_idx(block_idx1),
+        .held_block(held_block1),
         .*);
 
     block_logic game2(.Reset(Reset_h),
@@ -326,6 +338,9 @@ module tetris(input              CLOCK_50,
         .BOARD_BUSY(BOARD_BUSY2),
         .frame_clk_rising_edge(frame_clk_dummy),
         .player_num(2'd2),
+        .level_speed(level_speed2),
+        .block_idx(block_idx2),
+        .held_block(held_block2),
         .*);
 
     // Display keycode on hex display
